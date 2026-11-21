@@ -27,7 +27,7 @@ img{max-width:100%;border-radius:12px;margin-top:8px}.hide{display:none}.msg{col
 <header><span id=an onclick="ren()">Attendance SDSK-Central</span><span id=hl class=hide><a id=lg class=hide href="#" onclick="alog();return false">View Log</a><a href="#" onclick="sync();return false">Sync</a><a id=cv href="#" onclick="csv();return false">CSV</a><a href="#" onclick="pw();return false">Password</a><a href="#" onclick="out();return false">Logout</a></span><small id=who></small></header>
 <main id="m"></main><nav id="nv" class=hide></nav>
 <script>
-const URL0="https://script.google.com/macros/s/AKfycbyd-GNEqD7kj7t9XcHWsdoatYA1UvULUJRv1vu3U3XNTMGF_ikhFBMM9MIe5WHWp7K9Nw/exec"; // paste your Google Apps Script web app URL here once, so staff never have to
+const URL0="https://script.google.com/macros/s/AKfycbwoCwvVxmWiuwh7ZiM7Uhs1MR-dWvw_qwGMqTw25WVyGfAU1x6rkMKhyr0uqOlAxJ2RrQ/exec"; // paste your Google Apps Script web app URL here once, so staff never have to
 const DEFOFF=["SDSK-Central","PSSK D-Division","PSSK E-Division","PSSK Gate Hakima","PSSK Islamabad"]; // used only until the list loads from the server
 const offNames=()=>OFFS.length?OFFS.map(x=>x.o):DEFOFF;
 const ST=["Present","Leave","OSD","Rest","Medical"];
@@ -251,8 +251,8 @@ $("sfo").value=sfo;srows()}
 // one table row; the master admin's row is protected - only the master can change it and nobody can delete him or remove his admin rights
 const srow=s=>{const M=!!s.m,b=esc(s.b),lk=(f,t)=>`<a href="#" onclick="${f};return false">${t}</a>`;
 let a;if(M&&!SM())a="<small>Protected<br>(master admin)</small>";
-else a=lk(`sedt('${b}')`,"Edit")+" | "+lk(`srst('${b}')`,"Reset pw")+" | "+lk(`strf('${b}')`,"Transfer")+(s.dv?" | "+lk(`sdev('${b}')`,"Reset device"):"")+(M?"":"<br>"+lk(`sbr('${b}','${s.bo?"ON":"OFF"}')`,s.bo?"Browser on":"Browser off")+" | "+lk(`sadm('${b}',${!s.a})`,s.a?"Remove admin":"Make admin")+" | "+lk(`sdel('${b}')`,"Delete"));
-return`<tr><td>${esc(s.n)}<br><small>${esc(s.o)} | ${b}${M?" | MASTER ADMIN":s.a?" | Admin":""}</small>${s.dv?`<br><small style="color:#087E8B">&#128274; ${esc(s.dv)}</small>`:s.a?"":`<br><small style="color:#98A2B3">no device locked yet</small>`}${M?"":`<br><small style="color:${s.bo?"#B42318":"#16A34A"}">Android / PC browser: ${s.bo?"OFF":"ON"}</small>`}</td><td>${a}</td></tr>`};
+else a=lk(`sedt('${b}')`,"Edit")+" | "+lk(`srst('${b}')`,"Reset pw")+" | "+lk(`strf('${b}')`,"Transfer")+(s.dv?" | "+lk(`sdev('${b}')`,"Reset device"):"")+(M?"":"<br>"+lk(`sbr('${b}','${s.bp?"ON":"OFF"}')`,s.bp?"Browser on":"Browser off")+" | "+lk(`sdl('${b}','${s.dx?"ON":"OFF"}')`,s.dx?"Device lock on":"Device lock off")+" | "+lk(`sadm('${b}',${!s.a})`,s.a?"Remove admin":"Make admin")+" | "+lk(`sdel('${b}')`,"Delete"));
+return`<tr><td>${esc(s.n)}<br><small>${esc(s.o)} | ${b}${M?" | MASTER ADMIN":s.a?" | Admin":""}</small>${s.dv?`<br><small style="color:#087E8B">&#128274; ${esc(s.dv)}</small>`:s.a?"":`<br><small style="color:#98A2B3">no device locked yet</small>`}${M?"":`<br><small style="color:${s.bo?"#B42318":"#16A34A"}">Android / PC browser: ${s.bo?"OFF":"ON"}${s.bc?" (App-only mode is ON)":""} | Device lock: ${s.dl?"ON":"OFF"}${s.dc?"":" (common switch is OFF)"}${s.dx&&s.dc?" (exempt)":""}</small>`}</td><td>${a}</td></tr>`};
 function srows(){if(!$("st"))return;
 const q=sq.toLowerCase().split(/\s+/).filter(Boolean),L=SF.filter(s=>(!sfo||s.o==sfo)&&q.every(w=>(s.n+" "+s.b+" "+s.o).toLowerCase().includes(w))),sh=L.slice(0,sn);
 $("sc").textContent=(q.length||sfo?L.length+" of "+SF.length+" employees match. ":SF.length+" employees. ")+"Default password = belt number.";
@@ -284,7 +284,8 @@ if(!confirm("Are you sure? This cannot be undone."))return;
 try{const j=await call({k:"sdevall"});if(j.err)return j.err=="auth"?kick():alert(j.err);SF=j.list;sv();staffv();alert("Reset done for "+j.n+" employee(s).")}catch(e){alert("Needs internet connection")}}
 const srst=b=>confirm("Reset password to belt number?")&&sop({k:"srst",t:b});
 const sadm=(b,a)=>sop({k:"sadm",t:b,a});
-const sbr=(b,v)=>confirm((v=="ON"?"Switch the browser ON for ":"Switch the browser OFF for ")+SF.find(s=>s.b==b).n+"?\n"+(v=="ON"?"He can then use Android / PC browsers.":"Android / PC browsers will be refused; he must use the Attendance app. iPhone is not affected."))&&sop({k:"sbr",t:b,v});
+const sdl=(b,v)=>confirm((v=="ON"?"Turn the device lock ON for ":"Turn the device lock OFF for ")+SF.find(s=>s.b==b).n+"?\n"+(v=="ON"?"He will follow the common Device lock again (locked to his first phone / browser while the common switch is ON).":"He will be exempt: his phone / browser will not be checked or locked, even while the common Device lock is ON."))&&sop({k:"sdl",t:b,v});
+const sbr=(b,v)=>confirm((v=="ON"?"Switch the browser ON for ":"Switch the browser OFF for ")+SF.find(s=>s.b==b).n+"?\n"+(v=="ON"?"He can then use Android / PC browsers (unless the master admin's App-only mode is ON, which always wins).":"Android / PC browsers will be refused; he must use the Attendance app. iPhone is not affected."))&&sop({k:"sbr",t:b,v});
 function sedt(b){const s=SF.find(x=>x.b==b),n=prompt("Name with rank (to change the office use Transfer)",s.n);if(!n)return;sop({k:"sedt",t:b,n})}
 
 async function logv(){try{const j=await call({k:"blog"});if(j.err)return j.err=="auth"?kick():alert(j.err);
