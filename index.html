@@ -1,560 +1,395 @@
-// Paste in Extensions > Apps Script of your Google Sheet, then Deploy > New deployment > Web app
-// (Execute as: Me, Who has access: Anyone). Put the web app URL in URL0 at the top of index.html.
-// After EVERY change to this file: Deploy > Manage deployments > Edit > New version > Deploy.
-//
-// Security model: every request carries belt number + password. The server checks them,
-// never sends passwords to anyone, and only admins can read all records / edit / delete / manage staff.
-// A normal employee can only ADD a record for himself (name and office are forced from his login).
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#163A5F"><title>Attendance SDSK-Central</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+:root{--navy:#163A5F;--teal:#087E8B;--teal2:#18A6A6;--bg:#F4F7FA;--card:#fff;--line:#DCE3EA;--txt:#344054;--mut:#667085;--hs:#EAF2F8;--green:#16A34A;--red:#DC2626;--amber:#D97706}
+*{box-sizing:border-box}body{margin:0;font:15px "Segoe UI",system-ui,-apple-system,Roboto,sans-serif;background:var(--bg);color:var(--txt);padding-bottom:78px}
+header{background:var(--navy);color:#fff;padding:14px 16px;font-size:18px;font-weight:700;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px;position:sticky;top:0;z-index:1000;box-shadow:0 2px 8px rgba(22,58,95,.25)}
+header a{color:var(--hs);font-size:13px;font-weight:400;margin-left:12px}header small{width:100%;color:var(--hs);font-size:13px;font-weight:400}
+main{padding:16px;background:var(--bg);min-height:85vh;max-width:900px;margin:0 auto}
+label{display:block;margin:14px 0 6px;font-size:14px;color:var(--txt)}label b{color:var(--txt)}
+input,select{width:100%;padding:15px 14px;border:1px solid var(--line);border-radius:12px;font-size:15px;background:var(--card);color:var(--txt);font-family:inherit}
+select{-webkit-appearance:none;appearance:none;padding-right:38px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23667085' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+input:focus,select:focus{outline:2px solid var(--teal2);outline-offset:-1px;border-color:var(--teal2)}
+input[readonly]{background:#EEF2F6;color:var(--mut)}
+button{background:var(--teal);color:#fff;border:0;padding:15px;border-radius:12px;font-size:16px;font-weight:600;width:100%;margin-top:18px;font-family:inherit;box-shadow:0 1px 2px rgba(8,126,139,.3)}
+button:disabled{opacity:.6}button.r{background:var(--red);box-shadow:none}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--navy);z-index:1000;box-shadow:0 -2px 8px rgba(22,58,95,.25);padding-bottom:env(safe-area-inset-bottom,0)}
+nav div{flex:1;text-align:center;color:#B8C7D9;padding:10px 2px 9px;font-size:12px;display:flex;flex-direction:column;align-items:center;gap:3px;border-top:3px solid transparent}
+nav div svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav .on{color:var(--teal2);border-top:3px solid var(--teal2);font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}td,th{padding:10px 8px;border-bottom:1px solid #E6ECF2;text-align:left}th{background:#EAF2F8;color:var(--navy);font-weight:600}
+tr[onclick]:active{background:#EAF2F8}
+a{color:var(--teal)}h3,h4{color:var(--navy)}
+img{max-width:100%;border-radius:12px;margin-top:8px}.hide{display:none}.msg{color:var(--red);font-size:13px}
+.row{display:flex;gap:8px}.row>*{flex:1}.pp button{padding:6px;font-size:13px;margin-top:6px}.sm{font-size:12px;color:var(--mut)}
+</style></head><body>
+<header><span id=an onclick="ren()">Attendance SDSK-Central</span><span id=hl class=hide><a id=lg class=hide href="#" onclick="alog();return false">View Log</a><a href="#" onclick="sync();return false">Sync</a><a id=cv href="#" onclick="csv();return false">CSV</a><a href="#" onclick="pw();return false">Password</a><a href="#" onclick="out();return false">Logout</a></span><small id=who></small></header>
+<main id="m"></main><nav id="nv" class=hide></nav>
+<script>
+const URL0="https://script.google.com/macros/s/AKfycbyymSdoQvE-WbSbF7gGMWB_JmVSuCo1RSktYF8XLJaRnhGit3ysGeTjHM396wGVbnaXEg/exec"; // paste your Google Apps Script web app URL here once, so staff never have to
+const DEFOFF=["SDSK-Central","PSSK D-Division","PSSK E-Division","PSSK Gate Hakima","PSSK Islamabad"]; // used only until the list loads from the server
+const offNames=()=>OFFS.length?OFFS.map(x=>x.o):DEFOFF;
+const ST=["Present","Leave","OSD","Rest","Medical"];
+const $=id=>document.getElementById(id),opt=a=>a.map(x=>`<option>${esc(x)}</option>`).join("");
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ld=(k,d)=>{try{return JSON.parse(localStorage[k])||d}catch(e){return d}};
+let AN=localStorage.an||"Attendance SDSK-Central",LQ=ld("lq",[]),R=ld("att",[]).map(r=>({...r,id:Number(r.id)})),SF=ld("staff2",[]),TM=ld("tm",null),OFFS=ld("offs",[]),DQ=ld("dq",[]),MD=ld("md",[]),me=ld("sess",null),photo="",pos=null,ed=null,map=null,omap=null,wid=null,cur=0,back=1,busy=0,again=0;
+const REQUIRE_APP=false; // set true once everyone uses the Android app: browsers are then refused
+const DV=()=>{try{return window.Android?JSON.parse(Android.report()):null}catch(e){return null}}; // device report from the Android app
+const BLOCK_AUTOTIME=true; // refuse phones whose "Automatic date & time" is OFF
+const WHY={root:"The phone is rooted",dev:"Developer options is turned ON",adb:"USB / wireless debugging is ON",emu:"This is an emulator",mock:"A fake-location (mock GPS) app is feeding the location",hook:"A hooking / injection tool (Frida, Xposed, Magisk...) was detected",dbg:"The app is being debugged",at:"Automatic date & time is OFF (Settings > Date & time > turn ON Automatic)"};
+const devWhy=()=>{const v=DV();if(!v)return[];const o=["root","dev","adb","emu","mock","hook","dbg"].filter(k=>v[k]);if(BLOCK_AUTOTIME&&v.at===false)o.push("at");return o};
+const devBad=()=>devWhy().length>0;
+// device details sent with every request and saved with every record (shown to admin as "Marked through App / Web")
+const WDID=(()=>{let w="";try{w=localStorage.wdid||""}catch(e){}
+if(!w){try{const m=document.cookie.match(/(?:^|; )wdid=([^;]+)/);if(m)w=decodeURIComponent(m[1])}catch(e){}} // restore from the cookie if only localStorage was lost
+if(!w){w="W"+(window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random().toString(36).slice(2,12))}
+try{localStorage.wdid=w}catch(e){}
+try{document.cookie="wdid="+encodeURIComponent(w)+";max-age=31536000;path=/;SameSite=Lax;Secure"}catch(e){}
+return w})();
+const WFP=(()=>{try{const a=Math.min(screen.width,screen.height),b=Math.max(screen.width,screen.height);return a+"x"+b+"@"+(window.devicePixelRatio||1)+"|"+(navigator.platform||"")}catch(e){return""}})(); // device fingerprint (screen + platform); the server compares it with the one saved when the browser was locked
+let WBAT=null;try{if(navigator.getBattery)navigator.getBattery().then(b=>{WBAT=b}).catch(()=>{})}catch(e){}
+const uaShort=()=>{const u=navigator.userAgent||"",b=/Edg(e|iOS|A)?\//.test(u)?"Edge":/OPR\/|OPiOS|OPT\//.test(u)?"Opera":/Firefox\/|FxiOS/.test(u)?"Firefox":/Chrome\/|CriOS/.test(u)?"Chrome":/Safari\//.test(u)?"Safari":"Browser",o=/Android ([\d.]+)/.exec(u),i=/OS ([\d_]+) like Mac/.exec(u);return{b,os:o?"Android "+o[1]:i?"iOS "+i[1].replace(/_/g,"."):/Windows/.test(u)?"Windows":/Mac OS/.test(u)?"macOS":/Linux/.test(u)?"Linux":""}};
+const DI=()=>{const v=DV();if(v)return{src:"App",id:v.id||"",brand:v.brand||"",model:v.model||"",os:"Android "+(v.os||""),bat:v.bat,chg:v.chg?1:0,net:v.net||"",scr:v.scr||"",ssid:v.ssid||"",bssid:v.bssid||"",sig:v.sig||"",av:v.ver||""};
+const u=uaShort(),c=navigator.connection||{},ua=navigator.userAgent||"",pl=/iPhone|iPad|iPod/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1)?"ios":/Android/.test(ua)?"android":"desktop";return{src:"Web",pl,id:WDID,fp:WFP,brand:"",model:u.b,os:u.os,bat:WBAT?Math.round(WBAT.level*100):"",chg:WBAT&&WBAT.charging?1:0,net:c.effectiveType||c.type||(navigator.onLine?"Online":"Offline"),scr:screen.width+"x"+screen.height,av:"web "+APPV}};
+// same text as the server writes in the sheet, for records still waiting on this phone
+const dflds=i=>{const b=Number(i.bat),ss=String(i.ssid||"").replace(/^"|"$/g,""),bs=i.bssid=="02:00:00:00:00:00"?"":(i.bssid||"");return{src:i.src,did:i.id,dm:((i.brand||"")+" "+(i.model||"")).trim(),os:i.os||"",bat:i.bat===""||i.bat==null||isNaN(b)?"":b+"%"+(i.chg?" charging":""),net:i.net||"",wf:ss&&ss!="<unknown ssid>"?ss+(bs?" ("+bs+")":""):bs,av:i.av||""}};
+function blocked(){if(!devBad())return false;camStop();stopGps();$("hl").className="hide";$("nv").className="hide";$("who").textContent="";
+const rs=devWhy().filter(k=>k!="web");$("m").innerHTML='<h3>Security check failed</h3>'+(rs.length?"<p>Please fix:</p><ul>"+rs.map(k=>"<li>"+esc(WHY[k])+"</li>").join("")+"</ul>":"")+'<p>This app works only on phones that are <b>not rooted</b>, have <b>Developer options turned off</b>, <b>Automatic date &amp; time ON</b> and no fake-location app running.</p>'+(window.Android?"":"<p>Please open the official Attendance app.</p>")+'<button onclick="location.reload()">Check again</button>';return true}
+const APPV=8.4,NEEDV=8.4;let SV=null,warned=0; // APPV = this app, NEEDV = oldest server (Code.gs) version this app can work with
+const srvOld=()=>SV!==null&&SV<NEEDV;
+const MAXACC=150; // GPS accuracy (metres) needed before "Present" can be saved
+const U=()=>URL0||localStorage.url||"",isA=()=>!!(me&&me.a);
+const sv=()=>{try{localStorage.att=JSON.stringify(R);localStorage.staff2=JSON.stringify(SF);localStorage.offs=JSON.stringify(OFFS);localStorage.tm=JSON.stringify(TM);localStorage.dq=JSON.stringify(DQ);localStorage.md=JSON.stringify(MD);localStorage.sess=JSON.stringify(me)}catch(e){alert("Phone storage full - tap Sync first")}who()};
+const setAN=n=>{n=String(n||"").trim();if(!n)return;AN=n;try{localStorage.an=n}catch(e){}const e=$("an");if(e){e.textContent=n;e.style.cursor=me&&me.m?"pointer":""}document.title=n};
+const NI=['<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 13l2 2 4-4"/>','<rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/>','<path d="M12 21s7-6.2 7-11a7 7 0 10-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>','<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.3"/><path d="M16 14.2c2.9.3 5 2.5 5 5.8"/>','<path d="M4 21V7l8-4v18M12 9l8 3v9M2 21h20M8 10v.01M8 14v.01M16 15v.01M16 18v.01"/>'];
+const stc=x=>`<b style="color:${{Present:"#16A34A",Leave:"#D97706",Medical:"#DC2626",OSD:"#087E8B",Rest:"#344054"}[x]||"#344054"}">${esc(x)}</b>`;
+const MARKED="Attendance is already marked for today.";
+// what this employee has already marked today (from this phone's queue, or remembered from the server)
+const n8=x=>x.split("/").reverse().join(""),covers=(r,d)=>r.rf?n8(r.rf)<=n8(d)&&n8(d)<=n8(r.rt):r.d==d;
+const myMark=()=>{if(!me||isA()||me.one===false)return null;const d=D(new Date()),p=R.find(r=>r.e==me.n&&covers(r,d));if(p)return{s:p.s,t:p.t,rf:p.rf,rt:p.rt};const q=MD.find(z=>z.d==d);if(q)return{s:q.s,t:q.t,rf:q.rf,rt:q.rt};return TM&&TM.b==me.b&&TM.d==d?TM:null};
+function markedv(m){stopGps();camStop();$("m").innerHTML=`<div id=mk style="text-align:center;padding:36px 10px"><div style="font-size:54px;color:#16A34A">&#10004;</div><h3>Attendance is already marked</h3><p>Today: <b>${esc(m.s)}</b>${m.rf&&m.rf!=m.rt?` (${esc(m.rf)} to ${esc(m.rt)})`:""} ${m.t?" at "+esc(m.t):""}</p><p class=sm>Attendance can be marked only once a day. If something is wrong, tell the admin.</p></div>`}
+const who=()=>{if(me&&$("who")){const n=R.filter(r=>!r.sy).length;$("who").textContent=me.n+" | "+me.o+(isA()?" | ADMIN":"")+(n?` | \u23F3 ${n} not uploaded yet (will upload when online)`:" | all uploaded")+(srvOld()?" | \u26A0 SERVER OLD - redeploy Code.gs":"")+" | app v"+APPV}};
+const p2=n=>("0"+n).slice(-2),D=t=>p2(t.getDate())+"/"+p2(t.getMonth()+1)+"/"+t.getFullYear(),iso=t=>t.getFullYear()+"-"+p2(t.getMonth()+1)+"-"+p2(t.getDate()),T=t=>t.toLocaleTimeString("en-IN");
+// list of dd/mm/yyyy days from iso a to iso b (inclusive); null if invalid or more than 90 days
+const span=(a,b)=>{const ok=/^\d{4}-\d\d-\d\d$/;if(!ok.test(a)||!ok.test(b))return null;const o=[];for(let t=Date.UTC(+a.slice(0,4),+a.slice(5,7)-1,+a.slice(8,10)),e=Date.UTC(+b.slice(0,4),+b.slice(5,7)-1,+b.slice(8,10));t<=e;t+=864e5){const z=new Date(t);o.push(p2(z.getUTCDate())+"/"+p2(z.getUTCMonth()+1)+"/"+z.getUTCFullYear());if(o.length>90)return null}return o};
+const dn=x=>Date.UTC(+x.slice(6),+x.slice(3,5)-1,+x.slice(0,2)),fdm=t=>{const z=new Date(t);return p2(z.getUTCDate())+"/"+p2(z.getUTCMonth()+1)+"/"+z.getUTCFullYear()};
+// is there already a record for employee e on day x (dd/mm/yyyy)?  Saved rows count by their own day; rows still waiting to upload count by their whole period
+const has=(e,x)=>R.find(r=>r.e==e&&(r.sy?r.d==x:covers(r,x)));
+// employee only: first of these days that is already marked (this phone's waiting records + days remembered from the server)
+const clash=ds=>{if(!me||isA()||me.one===false)return null;for(const x of ds){const r=has(me.n,x);if(r)return{d:x,s:r.s};const m=MD.find(z=>z.d==x);if(m)return{d:x,s:m.s}}return null};
+// every request carries the logged-in belt number + password; the server decides what is allowed
+const call=async(o,cr)=>{const j=await(await fetch(U(),{method:"POST",body:JSON.stringify({dv:DV(),di:DI(),...o,...(cr||{b:me.b,p:me.p})})})).json();
+if(j&&typeof j=="object"){if(j.an&&j.an!=AN)setAN(j.an);SV=parseFloat(j.ver)||0;if(srvOld()&&!warned){warned=1;setTimeout(()=>alert("WARNING: the server (Google Apps Script) is an OLD version, so From / To dates will NOT be saved correctly.\n\nIn Apps Script: Deploy > Manage deployments > Edit > New version > Deploy, and make sure URL0 in this app is the URL of that same deployment."),50)}who()}return j};
 
-var H=['Date','Time','Saanjh Kendra','Employee','Status','Outside Duty at','Latitude','Longitude','Photo','ID','Server Time','Flag','Distance from office (m)','Server Epoch','Accuracy (m)','Range From','Range To','Marked through','Device ID','Device','OS','Battery','Network','Wi-Fi (name / BSSID)','App version'];
-var SRV=8.4;           // server version - the app checks this and warns if the deployed script is older
-var MASTER='3244';     // belt number of the MASTER ADMIN (S/CT NAVRAJ SINGH 3244/ASR): always admin, cannot be deleted or demoted, only he can edit / reset / transfer himself
-var BLOCK_AUTOTIME=true; // refuse phones whose "Automatic date & time" is OFF (clock can be changed by hand)
-var LOCK_DEVICE=true;    // starting value only - the MASTER ADMIN switches it ON / OFF in the app (Staff tab > Master admin tools > Device lock). Each employee (not admins) is locked to ONE Android phone and ONE web browser; admin can reset it (Staff tab > Reset device)
-var ALLOWED_SIG='';      // optional: SHA-256 of your signed APK (copy it from the Devices sheet, column "App Signature"); several allowed, separated by commas. Empty = not enforced.
-var WEB_IOS_ONLY=true;   // web portal: normal employees may use it ONLY from an iPhone / iPad. Android must use the app; PC / laptop browsers are refused. Admins may use the web from anywhere (to view / export).
-var ONE_PER_DAY=true;  // each employee can mark attendance only once per day (set false to allow several)
-var REQUIRE_APP=false; // starting value only. The MASTER ADMIN switches it ON / OFF from the app (Staff tab > Master admin tools > App-only mode); that saved choice wins.
-var TZ='Asia/Kolkata',MAXACC=150,TIMEOK=3,MAXKMH=150,MINJUMP=1000; // MAXKMH: faster than this between two punches = impossible movement (only checked if jump > MINJUMP metres)
- // GPS accuracy limit (m); allowed phone-vs-server clock gap (minutes)
-var ST=['Present','Leave','OSD','Rest','Medical'];
-// [name with rank, office, isAdmin]. Belt number is taken from the end of the name; first password = belt number.
-var SEED=[
- ['LR/ASI SANDEEP SINGH 1037/ASR','SDSK-Central'],
- ['S/CT NAVRAJ SINGH 3244/ASR','SDSK-Central',1],
- ['CT GURPINDER SINGH 88/ASR','PSSK D-Division'],
- ['CT KARANPREET SINGH 4149/ASR','PSSK D-Division'],
- ['CT SUKHDEV SINGH 3833','PSSK E-Division'],
- ['LR/ASI BALWINDER SINGH 3428/ASR','PSSK E-Division'],
- ['ASI PARWINDER SINGH 405/ASR','PSSK Gate Hakima'],
- ['LR/ASI SUKHDEV RAJ 3985/ASR','PSSK Gate Hakima'],
- ['LR/ASI NARESH KUMAR 1903/ASR','PSSK Islamabad'],
- ['LR/ASI JATINDER SINGH 3343/ASR','PSSK Islamabad']
-];
+function login(){if(blocked())return;setAN(AN);$("lg").className="hide";if(U()&&navigator.onLine)fetch(U()).then(r=>r.json()).then(j=>{if(j&&j.an)setAN(j.an)}).catch(()=>{});$("hl").className="hide";$("nv").className="hide";$("who").textContent="";
+$("m").innerHTML=`<label>Belt number (user name)</label><input id=u inputmode=numeric autocomplete=username><label>Password</label><input id=p type=password autocomplete=current-password>${U()?"":"<label>Server URL (one-time setup)</label><input id=url placeholder='https://script.google.com/macros/s/.../exec'>"}<p class=msg id=err></p><button id=lb onclick=go()>Login</button><p class=sm>First login: your password is your belt number. Please change it from the Password link.</p>`}
+async function go(){const b=$("u").value.trim(),p=$("p").value,er=m=>$("err").textContent=m;
+if($("url")&&$("url").value.trim())localStorage.url=$("url").value.trim();
+if(!b||!p)return er("Enter belt number and password");if(!U())return er("Server URL missing");
+$("lb").disabled=true;er("");
+try{const j=await call({k:"login"},{b,p});if(j.err)throw j.dev?j.err:0;
+me={...j.me,p,one:j.one};SF=[];MD=[];R=R.filter(r=>!r.sy||isA());sv();app();lqf()}
+catch(e){$("lb").disabled=false;er(e===0?"Wrong belt number or password":typeof e=="string"?e:"No connection. First login needs internet.")}}
+async function out(){if(R.some(r=>!r.sy)&&!confirm("Some records are not synced yet and will stay on this phone. Logout anyway?"))return;
+const c={b:me.b,p:me.p},at=D(new Date())+" "+T(new Date());let ok=false;
+if(navigator.onLine){try{const j=await Promise.race([call({k:"logout"}),new Promise((_,no)=>setTimeout(()=>no(0),6000))]);ok=!!(j&&j.ok)}catch(e){}}
+if(!ok){LQ.push({...c,at});try{localStorage.lq=JSON.stringify(LQ)}catch(e){}} // offline: the logout is reported when the phone is online again
+me=null;delete localStorage.sess;login()}
+// send logouts that could not be reported earlier (uses the credentials saved at that time; dropped if they are no longer valid)
+let lqb=0;async function lqf(){if(lqb||!LQ.length||!navigator.onLine||!U())return;lqb=1;
+try{for(const q of [...LQ]){const j=await call({k:"logout",at:q.at},{b:q.b,p:q.p});if(j&&(j.ok||j.err=="auth")){LQ=LQ.filter(z=>z!==q);localStorage.lq=JSON.stringify(LQ)}else break}}catch(e){}lqb=0}
+async function pw(){const p=prompt("New password (min 4 characters)");if(!p)return;if(p.length<4)return alert("Too short");
+try{const j=await call({k:"pw",np:p});if(j.err)return alert(j.err);me.p=p;sv();alert("Password changed")}catch(e){alert("Needs internet connection")}}
+function app(){if(blocked())return;$("hl").className="";$("cv").className=isA()?"":"hide";$("lg").className=SM()?"":"hide";setAN(AN);$("nv").className="";who();
+$("nv").innerHTML=(isA()?["Mark Attendance","View Attendance","Location view","Staff","Offices"]:["Mark Your Attendance Here"]).map((x,i)=>`<div id=t${i} onclick="show(${i})"><svg viewBox="0 0 24 24">${NI[i]}</svg>${x}</div>`).join("");show(0);sync(1)}
+function show(n){cur=n;stopGps();camStop();[...$("nv").children].forEach((c,i)=>c.className=i==n?"on":"");[()=>form(),list,mapv,staffv,offv][n]()}
+function emps(){$("e").innerHTML='<option value="">Select</option>'+opt(SF.filter(s=>s.o==$("o").value).map(s=>s.n))}
 
-function bt_(n){var m=String(n).match(/(\d+)(?:\/ASR)?\s*$/);return m?m[1]:'';}
-function hash_(b,p){
-  var d=Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,'sdsk:'+b+':'+p,Utilities.Charset.UTF_8);
-  return d.map(function(x){return ('0'+(x&255).toString(16)).slice(-2);}).join('');}
+// ---------- mark attendance ----------
+function form(r){camStop();if(!isA()){const m=myMark();if(m)return markedv(m)}ed=isA()&&r||null;photo="";pos=null;const a=isA(),x=ed||{};
+$("m").innerHTML=`<label>Date <b>*</b></label><input id=d ${ed?"":"readonly"} value="${esc(x.d)}"><label>Time <b>*</b></label><input id=t ${ed?"":"readonly"} value="${esc(x.t)}">
+<label>Saanjh Kendra Name <b>*</b></label>${a?`<select id=o onchange=emps()><option value="">Select</option>${opt(offNames())}</select>`:`<input id=o readonly value="${esc(me.o)}">`}
+<label>Employee Name <b>*</b></label>${a?`<select id=e><option value="">Select</option></select>`:`<input id=e readonly value="${esc(me.n)}">`}
+<label>Status <b>*</b></label><select id=s onchange=stat()><option value="">Select</option>${opt(ST)}</select>
+<div id=rg class=hide><div class=row><div><label>From date <b>*</b></label><input type=date id=fd onchange=rgc() oninput=rgc()></div><div><label>To date <b>*</b></label><input type=date id=td onchange=rgc() oninput=rgc()></div></div><p class=sm id=rgn></p></div>
+<div id=osd class=hide><label>Outside Duty at <b>*</b></label><input id=od value="${esc(x.od)}" autocapitalize="characters" style="text-transform:uppercase" oninput="var a=this.selectionStart,b=this.selectionEnd;this.value=this.value.toUpperCase();try{this.setSelectionRange(a,b)}catch(e){}"></div>
+<div id=pr class=hide><label>Location <b>*</b></label><input id=loc readonly placeholder="Fetching location..."><label>Live photo - front camera <b>*</b></label><video id=cam autoplay playsinline muted class=hide style="width:100%;transform:scaleX(-1);border-radius:12px;background:#000;margin-top:8px"></video><img id=pv class=hide><button type=button id=cb onclick=camStart()>Open front camera</button></div>
+<p class=msg id=err></p><button onclick=add()>${ed?"Update":"Save"}</button>${ed?'<button class=r onclick="show(back)">Cancel</button>':""}`;
+if(a){$("o").value=x.o||me.o;emps();$("e").value=x.e||me.n}
+if(ed){$("s").value=x.s;stat()}else tick()}
+function tick(){if(!$("d")||ed)return;const n=new Date();$("d").value=D(n);$("t").value=T(n);setTimeout(tick,1000)}
+function rgc(){const a=$("fd"),b=$("td");if(a.value&&(!b.value||b.value<a.value))b.value=a.value;if(a.value)b.min=a.value;
+const ds=a.value&&b.value?span(a.value,b.value):null,n=ds?ds.length:0,c=ds&&!ed?clash(ds):null;
+$("rgn").style.color=c?"#c00":"";
+$("rgn").textContent=c?"Already marked on "+c.d+" ("+c.s+"). Choose dates that are not already marked.":n?n+" day"+(n>1?"s":"")+": "+ds[0]+(n>1?" to "+ds[n-1]:""):a.value&&b.value?"Maximum 90 days at a time":""}
+function stat(){const s=$("s").value;const rg=!!s&&s!="Present"&&!ed;$("rg").className=rg?"":"hide";
+if(rg){const t0=iso(new Date());if(!$("fd").value){$("fd").value=t0;$("td").value=t0}if(!isA())$("fd").min=$("td").min=t0;rgc()}
+$("osd").className=s=="OSD"?"":"hide";$("pr").className=s=="Present"&&!ed?"":"hide";if(s!="Present")camStop();else if(!ed){if(!pos)loc();if(!photo&&!camS)camStart()}}
+const stopGps=()=>{if(wid!=null){navigator.geolocation.clearWatch(wid);wid=null}};
+// keeps improving the fix until it is accurate enough (<= MAXACC metres)
+function loc(){stopGps();wid=navigator.geolocation.watchPosition(p=>{if(!$("loc"))return stopGps();
+pos={la:p.coords.latitude.toFixed(6),lo:p.coords.longitude.toFixed(6),ac:Math.round(p.coords.accuracy)};
+const ok=pos.ac<=MAXACC;$("loc").value=`${pos.la}, ${pos.lo}  (${pos.ac} m)${ok?"":" - waiting for better GPS signal..."}`;const W="GPS signal is weak. Go outdoors / near a window and wait.";if(!ok)$("err").textContent=W;else if($("err").textContent==W)$("err").textContent="";if(ok)stopGps()},
+()=>$("err").textContent="Please switch on GPS and allow location access",{enableHighAccuracy:true,timeout:30000,maximumAge:0})}
+let camS=null;
+const camStop=()=>{if(camS){camS.getTracks().forEach(t=>t.stop());camS=null}};
+// Front camera only (facingMode "exact"), live preview + capture button. There is no gallery / file picker, so an old photo cannot be uploaded.
+async function camStart(){camStop();photo="";const v=$("cam");if(!v)return;$("pv").className="hide";v.className="";$("cb").textContent="Capture photo";$("cb").onclick=camShot;
+try{const gum=c=>navigator.mediaDevices.getUserMedia(c);let st;
+try{st=await gum({video:{facingMode:{exact:"user"},width:{ideal:640}},audio:false})}
+catch(e){if(/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)||!/Overconstrained|NotFound/.test(e.name))throw e;st=await gum({video:{width:{ideal:640}},audio:false})} // phones: front camera only. Desktop webcams often have no "front" label, so a PC may use its webcam.
+if(!$("cam")){st.getTracks().forEach(t=>t.stop());return}camS=st;v.srcObject=st}
+catch(e){v.className="hide";$("cb").textContent="Open front camera";$("cb").onclick=camStart;$("err").textContent="Front camera could not be opened. Allow camera permission."}}
+function camShot(){const v=$("cam");if(!camS||!v.videoWidth)return $("err").textContent="Camera not ready yet";
+const k=Math.min(1,480/v.videoWidth),c=document.createElement("canvas");c.width=v.videoWidth*k;c.height=v.videoHeight*k;c.getContext("2d").drawImage(v,0,0,c.width,c.height);
+photo=c.toDataURL("image/jpeg",.6);$("pv").src=photo;$("pv").className="";v.className="hide";camStop();$("cb").textContent="Retake photo";$("cb").onclick=camStart;$("err").textContent=""}
+let adding=0;
+async function add(){if(blocked()||adding)return;if(!isA()&&myMark()){alert(MARKED);return form()}const v=id=>$(id).value,s=v("s"),er=m=>$("err").textContent=m,p=s=="Present";
+if(!v("o")||!v("e")||!s)return er("Please fill all required fields");
+if(s=="OSD"&&!v("od").trim())return er("Enter Outside Duty location");
+if(!ed&&p){if(!pos)return er("Location not captured yet");if(pos.ac>MAXACC)return er("GPS accuracy is "+pos.ac+" m. Wait for a better signal (needs "+MAXACC+" m or less)");if(!photo)return er("Capture a live photo with the front camera")}
+let rf="",rt="",ds=[D(new Date())];
+if(!ed&&!p){const a=v("fd"),b=v("td"),t0=iso(new Date());
+if(srvOld())return er("The server is an old version - From / To dates would not be saved. Redeploy Code.gs (New version) and check URL0.");
+if(!a||!b)return er("Select From date and To date from the calendar");
+if(b<a)return er("To date cannot be before From date");
+if(!isA()&&a<t0)return er("From date cannot be in the past");
+ds=span(a,b);if(!ds)return er("Maximum 90 days at a time (or date not valid)");
+rf=ds[0];rt=ds[ds.length-1]}
+if(!ed&&!isA()&&me.one!==false){adding=1;
+if(navigator.onLine){try{const j=await call({k:"mydays"});if(j.ok){MD=j.list;sv()}}catch(x){}} // fresh list from the server when online
+adding=0;const c=clash(ds);if(c)return er("Attendance is already marked on "+c.d+" ("+c.s+"). You cannot mark again for the same date. Choose other dates.")}
+const hit=isA()&&me.one!==false&&!ed&&ds.find(x=>has(v("e"),x));
+if(hit)return er("Attendance is already marked for "+v("e")+(hit==D(new Date())?" today":" on "+hit)+". Open View Attendance to edit it.");
+if(rf&&!confirm(s+": "+rf+(rf!=rt?" to "+rt:"")+" ("+ds.length+" day"+(ds.length>1?"s":"")+").\nEvery one of these days will be recorded as "+s+". Save?"))return;
+const o={o:v("o"),e:v("e"),s,od:s=="OSD"?v("od").trim().toUpperCase():""};
+if(ed){Object.assign(ed,o,{d:v("d"),t:v("t"),sy:0});if(!p){ed.la="";ed.lo="";ed.photo="";ed.pu=""}ed=null;sv();sync(1);show(back);return alert("Updated")}
+stopGps();camStop();const n=new Date();const dii=DI();R.unshift({id:Date.now(),d:D(n),t:T(n),dv:DV(),di:dii,...dflds(dii),...o,rf,rt,rng:rf?1:0,la:p?pos.la:"",lo:p?pos.lo:"",ac:p?pos.ac:"",off:navigator.onLine?0:1,photo:p?photo:"",sy:0});
+if(!isA()){ds.forEach(x=>{if(!MD.some(z=>z.d==x))MD.push({d:x,s:o.s,t:T(n),rf,rt})});if(ds.includes(D(n)))TM={b:me.b,d:D(n),s:o.s,t:T(n),rf,rt}}sv();sync(1);form();alert(rf&&rf!=rt?s+" saved for "+ds.length+" days: "+rf+" to "+rt:"Attendance saved")}
 
-function sh_(){var ss=SpreadsheetApp.getActiveSpreadsheet(),s=ss.getSheetByName('Attendance');
-  if(s&&s.getRange(1,16).getValue()&&!s.getRange('P2').getNumberFormat().match(/@/))s.getRange('A:Q').setNumberFormat('@');
-  if(!s){s=ss.insertSheet('Attendance');s.appendRow(H);s.getRange('A:Y').setNumberFormat('@');}
-  else if(!s.getRange(1,11).getValue()){s.getRange(1,11,1,7).setValues([H.slice(10)]);s.getRange('K:Q').setNumberFormat('@');}
-  else if(!s.getRange(1,14).getValue()){s.getRange(1,14,1,4).setValues([H.slice(13)]);s.getRange('N:Q').setNumberFormat('@');}
-  else if(!s.getRange(1,16).getValue()){s.getRange(1,16,1,2).setValues([H.slice(15)]);s.getRange('P:Q').setNumberFormat('@');}
-  if(!s.getRange(1,18).getValue()){s.getRange(1,18,1,8).setValues([H.slice(17)]);s.getRange('R:Y').setNumberFormat('@');}
-  return s;}
+// ---------- view / edit / delete (admin) ----------
+const offSel=fn=>`<select id=fo onchange="${fn}"><option value="">All offices</option>${opt(offNames())}</select>`;
+const flagSel=f=>`<label class=sm style="margin:8px 0 0"><input type=checkbox id=fl style="width:auto" onchange=${f}> Flagged only (&#9888; time / location / accuracy issues)</label>`;
+const fsv=()=>{const e=$("fs");return e?e.value:""};
+const flt=()=>{const d=$("f").value.split("-").reverse().join("/"),o=$("fo").value,g=$("fl").checked,z=fsv();return r=>(!$("f").value||r.d==d)&&(!o||r.o==o)&&(!g||r.f)&&(!z||String(r.src||"").startsWith(z))};
+const flt0=()=>{const o=$("fo").value,g=$("fl").checked,z=fsv();return r=>(!o||r.o==o)&&(!g||r.f)&&(!z||String(r.src||"").startsWith(z))};
+const via=r=>r.src?`<small style="color:#667085">${esc(r.src)}</small>`:"";
+function list(){const td=iso(new Date());$("m").innerHTML=`<div class=row><input type=date id=f onchange=rows()>${offSel("rows()")}</div>${flagSel("rows()")}<label class=sm style="margin:8px 0 0">Marked through</label><select id=fs onchange="rows()"><option value="">App and Web</option><option value="App">App only</option><option value="Web">Web portal only</option></select>
+<div style="border:1px solid #DCE3EA;border-radius:12px;background:#fff;padding:12px;margin-top:10px"><b style="font-size:13px">Export attendance to Excel</b>
+<div class=row><div><label class=sm>From date</label><input type=date id=xf value="${td.slice(0,8)}01"></div><div><label class=sm>To date</label><input type=date id=xt value="${td}"></div></div>
+<p class=sm style="margin:6px 0 0">Uses the office, "Flagged only" and "Marked through" choices above. All offices if "All offices" is selected.</p><p class=msg id=xe></p><button onclick=xl() style="margin-top:6px">Export Excel</button></div>
+<div style="border:1px solid #DCE3EA;border-radius:12px;background:#fff;padding:12px;margin-top:10px"><b style="font-size:13px">Employees who did NOT mark attendance</b>
+<div class=row><div><label class=sm>From date</label><input type=date id=nf value="${td}"></div><div><label class=sm>To date</label><input type=date id=nt value="${td}"></div></div>
+<p class=sm style="margin:6px 0 0">Lists every employee with no record (Present, Leave, OSD, Rest or Medical) on each selected date. Uses the office choice above. Tap Sync first so the list is up to date.</p><p class=msg id=ne></p><button onclick=nmk() style="margin-top:6px">Export "Not marked" list</button></div>
+<table id=tb></table>`;rows()}
+function nmk(){const e=$("ne"),f=$("nf").value,t=$("nt").value,o=$("fo").value;e.textContent="";
+if(!f||!t)return e.textContent="Select both From date and To date";if(f>t)return e.textContent="From date cannot be after To date";
+const ds=span(f,t);if(!ds)return e.textContent="Maximum 90 days at a time";
+const S=SF.filter(z=>!o||z.o==o).sort((a,b)=>a.o==b.o?(a.n<b.n?-1:1):(a.o<b.o?-1:1));
+if(!S.length)return e.textContent="Staff list not loaded - tap Sync and try again";
+const W=[["Sr.","Date","Saanjh Kendra","Employee","Belt number","Status"]];let k=0;
+ds.forEach(x=>S.forEach(z=>{if(!has(z.n,x)){k++;W.push([k,x,z.o,z.n,String(z.b),"Not marked"])}}));
+if(!k)return e.textContent="Everyone has marked attendance for the selected date(s)";
+const dm=x=>x.split("-").reverse().join("");
+saveF("NotMarked_"+dm(f)+(f!=t?"_to_"+dm(t):"")+".xlsx",xlsx(W,[6,12,22,40,12,12],"Not marked"));e.textContent=k+" entr"+(k>1?"ies":"y")+" exported (employee + date with no attendance)"}
+function rows(){$("tb").innerHTML="<tr><th>Date</th><th>Time</th><th>Office</th><th>Employee</th><th>Status</th></tr>"+R.filter(flt()).map(r=>`<tr onclick="det(${r.id})"><td>${esc(r.d)}</td><td>${esc(r.t)}</td><td>${esc(r.o)}</td><td>${esc(r.e)}</td><td>${stc(r.s)}${r.f?" &#9888;":""}${r.sy?"":" &#9203;"}<br>${via(r)}</td></tr>`).join("")}
+function det(id){const r=R.find(x=>x.id==id);if(!r)return show(1);
+$("m").innerHTML=`<a href="#" onclick="show(1);return false">&larr; Back</a>${r.photo?`<img src="${r.photo}">`:r.pu?`<div id=ph class=sm></div>`:""}<p><small>Date</small><br>${esc(r.d)}</p><p><small>Time</small><br>${esc(r.t)}</p><p><small>Saanjh Kendra Name</small><br>${esc(r.o)}</p><p><small>Employee Name</small><br>${esc(r.e)}</p><p><small>Status</small><br>${esc(r.s)}</p>${r.rf?`<p><small>Period (From - To)</small><br>${esc(r.rf)} to ${esc(r.rt)}</p>`:""}${r.od?`<p><small>Outside Duty at</small><br>${esc(r.od)}</p>`:""}${r.f?`<p style="background:#fff3cd;padding:8px;border-radius:4px"><b>&#9888; Check this record</b><br>${esc(r.f).split(" | ").join("<br>")}</p>`:""}${r.srv?`<p><small>Received by server</small><br>${esc(r.srv)}</p>`:""}${r.src?`<p><small>Marked through</small><br><b>${esc(r.src)}</b></p><p><small>Device used</small><br>${esc(r.dm||"-")}${r.os?" | "+esc(r.os):""}${r.bat?"<br>Battery "+esc(r.bat):""}${r.net?" | Network "+esc(r.net):""}${r.wf?"<br>Wi-Fi "+esc(r.wf):""}${r.did?"<br><small>Device ID "+esc(r.did)+"</small>":""}${r.av?"<br><small>App version "+esc(r.av)+"</small>":""}</p>`:`<p><small>Marked through</small><br>Not recorded (marked before this feature)</p>`}${r.m!==""&&r.m!=null&&r.la?`<p><small>Distance from office</small><br>${esc(r.m)} m</p>`:""}${r.la?`<p><small>Location</small><br><a href="https://maps.google.com/?q=${esc(r.la)},${esc(r.lo)}" target=_blank>${esc(r.la)}, ${esc(r.lo)} - open map</a></p>`:""}<button onclick="edit(${r.id},1)">Edit</button><button class=r onclick="del(${r.id},1)">Delete</button>`;if(!r.photo&&r.pu)phoLoad(r)}
+// the photo is read from Drive by the server (as the script owner) and shown inside the app, so no Google sign-in / Drive sharing is needed
+const PH={};
+async function phoLoad(r){const e=$("ph");if(!e)return;if(PH[r.id]){e.innerHTML=`<img src="${PH[r.id]}">`;return}e.textContent="Loading photo...";
+try{const j=await call({k:"photo",id:r.id});if($("ph")!==e)return;if(j.err)return j.err=="auth"?kick():e.innerHTML=`<p class=msg>${esc(j.err)}</p>${/^https?:/.test(r.pu)?`<a href="${esc(r.pu)}" target=_blank>Open in Google Drive</a>`:""}`;
+const ks=Object.keys(PH);if(ks.length>20)delete PH[ks[0]];PH[r.id]=j.img;e.innerHTML=`<img src="${j.img}">`}catch(x){if($("ph")===e)e.textContent="Photo needs internet connection"}}
+function edit(id,from){back=from;form(R.find(x=>x.id==id))}
+function del(id,from){if(!isA()||!confirm("Delete this record?"))return;R=R.filter(x=>x.id!=id);DQ.push(id);sv();sync(1);show(from)}
 
-// Offices sheet: Office | Lat | Lng | Radius (m). This sheet is the master list of Saanjh Kendras.
-// Add / delete offices from the app's Offices tab (or type a name in column A by hand; leave Lat/Lng empty until set).
-var DEFOFF=['SDSK-Central','PSSK D-Division','PSSK E-Division','PSSK Gate Hakima','PSSK Islamabad'];
-function of_(){var ss=SpreadsheetApp.getActiveSpreadsheet(),s=ss.getSheetByName('Offices');
-  if(!s){s=ss.insertSheet('Offices');s.appendRow(['Office','Lat','Lng','Radius (m)']);}return s;}
-// One-time: make sure the default offices and every office used by an employee are listed in the Offices sheet.
-function seedOffs_(){var p=PropertiesService.getScriptProperties();if(p.getProperty('offs2'))return;
-  var s=of_(),have={};s.getDataRange().getValues().slice(1).forEach(function(x){have[String(x[0])]=1;});
-  var names=DEFOFF.slice();staff_().forEach(function(x){if(x.o&&names.indexOf(x.o)<0)names.push(x.o);});
-  names.forEach(function(n){if(!have[n]){s.appendRow([n,'','',200]);have[n]=1;}});
-  p.setProperty('offs2','1');}
-function offs_(){seedOffs_();var o=[];of_().getDataRange().getValues().slice(1).forEach(function(x){
-  if(String(x[0])==='')return;var ok=x[1]!==''&&x[2]!=='';
-  o.push({o:String(x[0]),la:ok?Number(x[1]):null,lo:ok?Number(x[2]):null,r:Number(x[3])||200});});return o;}
-function dist_(a,b,c,d){var R=6371000,p=Math.PI/180,x=(c-a)*p,y=(d-b)*p,
-  h=Math.sin(x/2)*Math.sin(x/2)+Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)*Math.sin(y/2);
-  return Math.round(2*R*Math.asin(Math.sqrt(h)));}
+// ---------- Location view (map) ----------
+function mapv(){map=null;$("m").innerHTML=`<div class=row><input type=date id=f onchange=pins(1)>${offSel("pins(1)")}</div>${flagSel("pins(1)")}<p class=sm id=mc></p><div id=mp style="height:64vh"></div>`;$("f").value=iso(new Date());pins(1)}
+let mlay=null;
+function pins(fit){const el=$("mp");if(!el)return;if(typeof L=="undefined")return el.textContent="Map needs internet connection";
+if(!map){map=L.map(el);L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"&copy; OpenStreetMap"}).addTo(map);mlay=L.layerGroup().addTo(map);fit=1}
+mlay.clearLayers();
+OFFS.filter(o=>o.la!=null).forEach(o=>L.circle([o.la,o.lo],{radius:o.r,color:"#087E8B",weight:1,fillOpacity:.08,interactive:false}).addTo(mlay));
+const P=R.filter(r=>r.la&&flt()(r));$("mc").textContent=P.length+" location(s) shown. Orange circles = allowed office areas.";
+P.forEach(r=>L.marker([r.la,r.lo]).addTo(mlay).bindPopup(`<div class=pp>${esc(r.e)}<br>${esc(r.o)}<br>${esc(r.d)} ${esc(r.t)}<br>${esc(r.s)}${r.m!==""&&r.m!=null?`<br>${esc(r.m)} m from office`:""}${r.f?`<br><b style="color:#c62828">&#9888; ${esc(r.f)}</b>`:""}<div class=row><button onclick="edit(${r.id},2)">Edit</button><button class=r onclick="del(${r.id},2)">Delete</button></div></div>`));
+if(fit)P.length?map.fitBounds(P.map(r=>[r.la,r.lo]),{padding:[30,30],maxZoom:17}):map.setView([31.63,74.87],11)}
+// ---------- Offices: admin taps the map to set each office's allowed area ----------
+let sel=null,omk=null,oci=null;
+function offv(){omap=null;omk=oci=null;sel=null;
+$("m").innerHTML=`<label>Saanjh Kendra</label><select id=oo onchange=ofsel()>${opt(offNames())}</select><p class=sm id=os></p><div id=om style="height:48vh"></div>
+<label>Allowed distance from office (metres)</label><input id=rad type=number min=20 max=5000 value=200 oninput=ofdraw()>
+<div class=row><button onclick=ofme()>Use my current location</button><button onclick=ofsave()>Save office location</button></div><p class=msg id=err></p>
+<table>${offNames().map((o,i)=>{const x=OFFS.find(z=>z.o==o);return`<tr onclick="osel(${i})"><td>${esc(o)}</td><td>${x&&x.la!=null?"&#10004; set ("+x.r+" m)":"<b style=color:#c62828>not set</b>"}</td><td><a href="#" onclick="event.stopPropagation();odel(${i});return false">Delete</a></td></tr>`}).join("")}</table>
+<h4>Add Saanjh Kendra</h4><label>Name of new Saanjh Kendra</label><input id=on maxlength=60 placeholder="e.g. PSSK Sultanwind"><p class=msg id=err2></p><button onclick=oadd()>Add Saanjh Kendra</button>`;
+if(typeof L=="undefined"){ofsel();return $("om").textContent="Map needs internet connection"}
+omap=L.map("om");L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"&copy; OpenStreetMap"}).addTo(omap);
+omap.on("click",e=>{sel={la:e.latlng.lat,lo:e.latlng.lng};ofdraw()});ofsel()}
+function ofsel(){const o=$("oo").value,x0=OFFS.find(z=>z.o==o),x=x0&&x0.la!=null?x0:null;sel=x?{la:x.la,lo:x.lo}:null;$("rad").value=x0?x0.r:200;
+$("os").textContent=x?"Saved location shown. Tap the map to move it.":"Not set yet. Tap the map where this office is, or use your current location.";
+if(!omap)return;ofdraw();x?omap.setView([x.la,x.lo],17):omap.setView([31.63,74.87],12)}
+function osel(i){$("oo").value=offNames()[i];ofsel();window.scrollTo(0,0)}
+async function oadd(){const n=$("on").value.replace(/\s+/g," ").trim(),e=$("err2");if(!n)return e.textContent="Enter the Saanjh Kendra name";
+try{const j=await call({k:"oadd",o:n});if(j.err)return j.err=="auth"?kick():e.textContent=j.err;OFFS=j.list;sv();offv();$("oo").value=n;ofsel();alert("Saanjh Kendra added. Now tap the map to set its location and save.")}catch(x){e.textContent="Needs internet connection"}}
+async function odel(i){const n=offNames()[i];if(!confirm('Delete Saanjh Kendra "'+n+'"? Old attendance records are kept.'))return;
+try{const j=await call({k:"odel",o:n});if(j.err)return j.err=="auth"?kick():alert(j.err);OFFS=j.list;sv();offv()}catch(x){alert("Needs internet connection")}}
+function ofdraw(){if(!omap)return;if(omk)omk.remove();if(oci)oci.remove();omk=oci=null;if(!sel)return;
+omk=L.marker([sel.la,sel.lo]).addTo(omap);oci=L.circle([sel.la,sel.lo],{radius:Number($("rad").value)||200,color:"#087E8B",weight:1,fillOpacity:.15,interactive:false}).addTo(omap)}
+function ofme(){navigator.geolocation.getCurrentPosition(p=>{sel={la:p.coords.latitude,lo:p.coords.longitude};ofdraw();if(omap)omap.setView([sel.la,sel.lo],17)},()=>$("err").textContent="Allow location access first",{enableHighAccuracy:true,timeout:20000})}
+async function ofsave(){const r=Number($("rad").value);if(!sel)return $("err").textContent="Tap the map to choose the office location first";
+if(!(r>=20&&r<=5000))return $("err").textContent="Distance must be 20 to 5000 metres";$("err").textContent="";
+try{const j=await call({k:"soff",o:$("oo").value,la:sel.la,lo:sel.lo,r});if(j.err)return j.err=="auth"?kick():$("err").textContent=j.err;
+OFFS=j.list;sv();const o=$("oo").value;offv();$("oo").value=o;ofsel();alert("Office location saved")}catch(e){$("err").textContent="Needs internet connection"}}
 
-// Staff sheet: Belt | Name | Office | Admin (Y/N) | PwHash.  Created (or migrated from the old JSON format) on first use.
-function st_(){
-  var ss=SpreadsheetApp.getActiveSpreadsheet(),s=ss.getSheetByName('Staff');
-  if(s&&String(s.getRange('A1').getValue())=='Belt')return s;
-  var old=[];
-  if(s){try{old=JSON.parse(s.getRange('A1').getValue()||'[]');}catch(x){}s.clear();}else s=ss.insertSheet('Staff');
-  s.getRange('A:E').setNumberFormat('@');
-  s.appendRow(['Belt','Name','Office','Admin','PwHash']);
-  var rows=old.length
-    ?old.map(function(x){return [String(x.b),x.n,x.o,x.a?'Y':'N',hash_(x.b,x.pw||x.b)];})
-    :SEED.map(function(x){var b=bt_(x[0]);return [b,x[0],x[1],x[2]?'Y':'N',hash_(b,b)];});
-  rows.forEach(function(r){s.appendRow(r);});
-  return s;}
-function staff_(){
-  return st_().getDataRange().getValues().slice(1).map(function(x,i){
-    return {r:i+2,b:String(x[0]),n:String(x[1]),o:String(x[2]),a:x[3]=='Y'||String(x[0])==MASTER,h:String(x[4])};});}
-function pub_(x){return {b:x.b,n:x.n,o:x.o,a:x.a,m:x.b==MASTER};}
-// every transfer between offices is written here (who, when, from, to)
-function logT_(u,t,from,to){var ss=SpreadsheetApp.getActiveSpreadsheet(),s=ss.getSheetByName('Transfers');
-  if(!s){s=ss.insertSheet('Transfers');s.getRange('A:F').setNumberFormat('@');s.appendRow(['Time','Belt','Employee','From office','To office','Done by']);}
-  s.appendRow([Utilities.formatDate(new Date(),TZ,'dd/MM/yyyy h:mm:ss a'),String(t.b),t.n,from,to,u.n]);}
-// ---- ACTIVITY LOG (sheet "Audit Log"): login / logout of everyone + every change made by an admin. Only the MASTER ADMIN can read it through the app. ----
-var AH=['Date','Time','Belt','Name','Role','Type','Action','Details'];
-var DEFNAME='Attendance SDSK-Central';
-function aud_(){var ss=SpreadsheetApp.getActiveSpreadsheet(),s=ss.getSheetByName('Audit Log');
-  if(!s){s=ss.insertSheet('Audit Log');s.getRange('A:H').setNumberFormat('@');s.appendRow(AH);s.setFrozenRows(1);}return s;}
-function role_(u){return u.b==MASTER?'Master admin':u.a?'Admin':'Employee';}
-function cl_(x){x=String(x==null?'':x).replace(/[\r\n]+/g,' ').slice(0,900);return /^[=+\-@]/.test(x)?' '+x:x;}
-// type: AUTH (login/logout) | RECORD (attendance record add/edit/delete) | STAFF | OFFICE | APP
-function audit_(u,type,act,det){try{var n=new Date();aud_().appendRow([Utilities.formatDate(n,TZ,'dd/MM/yyyy'),Utilities.formatDate(n,TZ,'h:mm:ss a'),String(u.b),cl_(u.n),role_(u),type,act,cl_(det)]);}catch(x){}}
-function an_(){try{return PropertiesService.getScriptProperties().getProperty('appname')||DEFNAME;}catch(x){return DEFNAME;}}
-function user_(b,p){
-  b=String(b||'');var h=hash_(b,String(p||'')),l=staff_();
-  for(var i=0;i<l.length;i++)if(l[i].b==b&&(l[i].h==h||(l[i].h===''&&String(p||'')==b)))return l[i];return null;} // blank PwHash (employee typed into the Staff sheet by hand) = default password (belt number)
-function find_(s,id){var n=s.getLastRow(),v=s.getRange(1,10,n,1).getValues();
-  for(var i=1;i<n;i++)if(String(v[i][0])==String(id))return i+1;return 0;}
-// Every refused attempt is written here so admin can see repeat offenders (Security log screen).
-function log_(u,d,why){var ss=SpreadsheetApp.getActiveSpreadsheet(),b=ss.getSheetByName('Blocked');
-  if(!b){b=ss.insertSheet('Blocked');b.appendRow(['Time','Belt','Name','Reason','Record ID']);}
-  b.appendRow([Utilities.formatDate(new Date(),TZ,'dd/MM/yyyy h:mm:ss a'),String(u.b),u.n,why,String(d.id||'')]);}
-// If someone types a date/time into the Sheet and Google turns it into a real date, show it the way the app expects.
-function fmt_(v,f){return Object.prototype.toString.call(v)=='[object Date]'?(f=='h:mm:ss a'?Utilities.formatDate(v,TZ,f).toLowerCase():Utilities.formatDate(v,TZ,f)):String(v);}
-function folder_(name,parent){var it=parent.getFoldersByName(name);return it.hasNext()?it.next():parent.createFolder(name);}
-// The "day" of a new record is decided by the SERVER's clock (India time), so changing the phone's date cannot create a second mark.
-// Only a record that was genuinely marked offline (and uploaded up to 3 days late) counts for the day it was marked.
-function dayKey_(d){var n=new Date(),g=(n.getTime()-Number(d.id))/60000;
-  if(d.off&&g>TIMEOK&&g<OFFMAX)return Utilities.formatDate(new Date(Number(d.id)),TZ,'dd/MM/yyyy');
-  return Utilities.formatDate(n,TZ,'dd/MM/yyyy');}
-// same employee? compare by belt number (survives a name edit); fall back to full name when no belt number
-function same_(a,b){var x=bt_(a),y=bt_(b);return x&&y?x==y:String(a)==String(b);}
-// first day of `list` (dd/MM/yyyy strings) on which this employee already has a record, or null
-function conflict_(s,name,list){var v=s.getDataRange().getValues(),m={};
-  for(var i=1;i<v.length;i++)if(same_(v[i][3],name)){var k=fmt_(v[i][0],'dd/MM/yyyy');m[k]={s:String(v[i][4]),t:fmt_(v[i][1],'h:mm:ss a'),d:k};}
-  for(var j=0;j<list.length;j++)if(m[list[j]])return m[list[j]];
-  return null;}
-function marked_(s,name,dk){return conflict_(s,name,[dk]);}
-// ---- From/To date ranges (Leave, OSD, Rest, Medical): one row per day ----
-var MAXDAYS=90;
-var OFFMAX=1440;      // a record marked offline is accepted for its own day only if uploaded within this many minutes (1440 = 1 day)
-function fd_(t){var z=new Date(t);return ('0'+z.getUTCDate()).slice(-2)+'/'+('0'+(z.getUTCMonth()+1)).slice(-2)+'/'+z.getUTCFullYear();}
-function pd_(x){var m=/^(\d\d)\/(\d\d)\/(\d{4})$/.exec(String(x||''));if(!m)return 0;var t=Date.UTC(+m[3],+m[2]-1,+m[1]);return fd_(t)==x?t:0;} // rejects 31/02 etc.
-function n8_(x){return x.slice(6)+x.slice(3,5)+x.slice(0,2);}
-function days_(f,t){var a=pd_(f),b=pd_(t);if(!a||!b||b<a)return null;var o=[];for(var x=a;x<=b&&o.length<=MAXDAYS;x+=86400000)o.push(fd_(x));return o;}
-function out_(x){return ContentService.createTextOutput(JSON.stringify(x)).setMimeType(ContentService.MimeType.JSON);}
+// ---------- staff (admin) ----------
+let sq="",sfo="",sn=50;
+const SM=()=>!!(me&&me.m);
+function staffv(){$("m").innerHTML=`<div class=row><input id=sl type=search placeholder="Search name, belt number or office" value="${esc(sq)}" oninput="sq=this.value;sn=50;srows()"><select id=sfo onchange="sfo=this.value;sn=50;srows()"><option value="">All offices</option>${opt(offNames())}</select></div><p class=sm id=sc></p><table id=st></table><button id=smore class=hide onclick="sn+=50;srows()" style="background:#344054">Show more</button>
+<h4>Add employee</h4><label>Name with rank (e.g. CT AMAN SINGH 1234/ASR)</label><input id=sn><label>Belt number</label><input id=sb inputmode=numeric><label>Saanjh Kendra</label><select id=so>${opt(offNames())}</select><label><input type=checkbox id=sa style="width:auto"> Admin</label><p class=msg id=err></p><button onclick=sadd()>Add employee</button><button onclick=logv() style="background:#344054">Security log (blocked attempts)</button>${SM()?'<h4>Master admin tools</h4><button onclick=alog()>View Log (login / logout and all changes)</button><button onclick=ren() style="background:#344054">Change app name</button><button onclick=reqv() style="background:#344054">App-only mode (switch browsers off)</button><button onclick=lkv() style="background:#344054">Device lock (ON / OFF)</button><button onclick=sdevall() style="background:#B42318">Reset ALL Safari devices (iPhone)</button><button onclick=retv() style="background:#344054">Storage clean-up (auto-delete old photos / logs)</button>':""}`;
+$("sfo").value=sfo;srows()}
+// one table row; the master admin's row is protected - only the master can change it and nobody can delete him or remove his admin rights
+const srow=s=>{const M=!!s.m,b=esc(s.b),lk=(f,t)=>`<a href="#" onclick="${f};return false">${t}</a>`;
+let a;if(M&&!SM())a="<small>Protected<br>(master admin)</small>";
+else a=lk(`sedt('${b}')`,"Edit")+" | "+lk(`srst('${b}')`,"Reset pw")+" | "+lk(`strf('${b}')`,"Transfer")+(s.dv?" | "+lk(`sdev('${b}')`,"Reset device"):"")+(M?"":"<br>"+lk(`sadm('${b}',${!s.a})`,s.a?"Remove admin":"Make admin")+" | "+lk(`sdel('${b}')`,"Delete"));
+return`<tr><td>${esc(s.n)}<br><small>${esc(s.o)} | ${b}${M?" | MASTER ADMIN":s.a?" | Admin":""}</small>${s.dv?`<br><small style="color:#087E8B">&#128274; ${esc(s.dv)}</small>`:s.a?"":`<br><small style="color:#98A2B3">no device locked yet</small>`}</td><td>${a}</td></tr>`};
+function srows(){if(!$("st"))return;
+const q=sq.toLowerCase().split(/\s+/).filter(Boolean),L=SF.filter(s=>(!sfo||s.o==sfo)&&q.every(w=>(s.n+" "+s.b+" "+s.o).toLowerCase().includes(w))),sh=L.slice(0,sn);
+$("sc").textContent=(q.length||sfo?L.length+" of "+SF.length+" employees match. ":SF.length+" employees. ")+"Default password = belt number.";
+$("st").innerHTML=sh.map(srow).join("")||"<tr><td>No employee found</td></tr>";
+$("smore").className=L.length>sh.length?"":"hide";$("smore").textContent="Show more ("+(L.length-sh.length)+" more)"}
+// ---- transfer an employee to another Saanjh Kendra ----
+function strf(b){const s=SF.find(x=>x.b==b);if(!s)return;
+$("m").innerHTML=`<a href="#" onclick="show(3);return false">&larr; Back</a><h4>Transfer employee</h4><p><b>${esc(s.n)}</b><br><small>Belt ${esc(s.b)} | now in ${esc(s.o)}</small></p><label>Transfer to Saanjh Kendra</label><select id=to><option value="">Select</option>${opt(offNames().filter(o=>o!=s.o))}</select><p class=sm>From now on this employee marks attendance for the new office (its allowed GPS area applies at once). Records already marked stay under the old office. Every transfer is written in the "Transfers" sheet.</p><p class=msg id=err></p><button onclick="strfgo('${esc(s.b)}')">Transfer</button>`}
+async function strfgo(b){const s=SF.find(x=>x.b==b),to=$("to").value,er=m=>$("err").textContent=m;if(!to)return er("Select the new Saanjh Kendra");
+if(!confirm("Transfer "+s.n+"\nfrom "+s.o+"\nto "+to+" ?"))return;
+try{const j=await call({k:"strf",t:b,so:to});if(j.err)return j.err=="auth"?kick():er(j.err);SF=j.list;sv();alert("Transferred to "+to);show(3)}catch(e){er("Needs internet connection")}}
+async function sop(o){try{const j=await call(o);if(j.err)return j.err=="auth"?kick():alert(j.err);SF=j.list;sv();staffv()}catch(e){alert("Needs internet connection")}}
+const sadd=()=>sop({k:"sadd",n:$("sn").value,sb:$("sb").value,so:$("so").value,sa:$("sa").checked});
+const sdel=b=>confirm("Delete "+SF.find(s=>s.b==b).n+"? Old attendance records are kept.")&&sop({k:"sdel",t:b});
+const sdev=b=>confirm("Reset the locked phone / browser of "+SF.find(s=>s.b==b).n+"?\nThe next phone (app) and browser he uses will be locked instead.")&&sop({k:"sdev",t:b});
+async function lkv(){if(!SM())return;stopGps();camStop();let on=null;
+try{const j=await call({k:"lockdev"});if(j.err)return j.err=="auth"?kick():alert(j.err);on=j.on}catch(e){return alert("Needs internet connection")}
+$("m").innerHTML=`<a href="#" onclick="show(3);return false">&larr; Back</a><h4>Device lock</h4><p>Status: <b style="color:${on?"#16A34A":"#D97706"}">${on?"ON - each employee is locked to one phone / browser":"OFF - no device is locked or checked"}</b></p><p class=sm>When ON, an employee's first phone (app) and first browser are locked, and any other device is refused until you press Reset device. When OFF nothing is locked and nobody is refused for the device they use. Admins are never locked. Locks already saved are kept while OFF and apply again when you turn it ON. Takes effect at once; no rebuild.</p><button onclick="lkset(${!on})" style="background:${on?"#D97706":"#087E8B"}">${on?"Turn OFF device lock":"Turn ON device lock"}</button>`}
+async function lkset(on){if(!SM())return;if(!confirm(on?"Turn ON device lock?\nEmployees will be locked to the phone / browser they use.":"Turn OFF device lock?\nNo device will be checked."))return;
+try{const j=await call({k:"lockdev",on});if(j.err)return j.err=="auth"?kick():alert(j.err);alert("Device lock is now "+(j.on?"ON":"OFF"));lkv()}catch(e){alert("Needs internet connection")}}
+async function reqv(){if(!SM())return;stopGps();camStop();let on=null;
+try{const j=await call({k:"reqapp"});if(j.err)return j.err=="auth"?kick():alert(j.err);on=j.on}catch(e){return alert("Needs internet connection")}
+$("m").innerHTML=`<a href="#" onclick="show(3);return false">&larr; Back</a><h4>App-only mode</h4><p>Status: <b style="color:${on?"#16A34A":"#D97706"}">${on?"ON - Android / PC browsers refused (iPhone excluded)":"OFF - browsers allowed by the iPhone-only rule (Android / PC browsers already refused for employees)"}</b></p><p class=sm>When ON, Android phones and PC / laptop browsers are refused; everyone must use the Android app. iPhone / iPad users are NOT affected and keep using the web. The master admin can still use the web, so you can never lock yourself out. Turn it ON once every employee uses the app. Takes effect at once; no rebuild.</p><p class=msg id=err></p><button onclick="reqset(${!on})" style="background:${on?"#D97706":"#087E8B"}">${on?"Turn OFF (allow browsers again)":"Turn ON (app only)"}</button>`}
+async function reqset(on){if(!SM())return;if(!confirm(on?"Turn ON App-only mode?\nEmployees using an Android or PC browser (and non-master admins on a PC) will be refused immediately. iPhone users are not affected.":"Turn OFF App-only mode?"))return;
+try{const j=await call({k:"reqapp",on});if(j.err)return j.err=="auth"?kick():alert(j.err);alert("App-only mode is now "+(j.on?"ON":"OFF"));reqv()}catch(e){alert("Needs internet connection")}}
+async function sdevall(){if(!SM())return;const n=SF.filter(s=>/Web: Safari/.test(s.dv||"")).length;if(!n)return alert("No Safari browser is locked at the moment.");
+if(!confirm("Reset the locked Safari browser of ALL "+n+" employees?\n\nChrome, Firefox, Opera and Android app phones are NOT changed. Each employee's next Safari login will lock again."))return;
+if(!confirm("Are you sure? This cannot be undone."))return;
+try{const j=await call({k:"sdevall"});if(j.err)return j.err=="auth"?kick():alert(j.err);SF=j.list;sv();staffv();alert("Reset done for "+j.n+" employee(s).")}catch(e){alert("Needs internet connection")}}
+const srst=b=>confirm("Reset password to belt number?")&&sop({k:"srst",t:b});
+const sadm=(b,a)=>sop({k:"sadm",t:b,a});
+function sedt(b){const s=SF.find(x=>x.b==b),n=prompt("Name with rank (to change the office use Transfer)",s.n);if(!n)return;sop({k:"sedt",t:b,n})}
 
-function doGet(){return out_({ok:1,ver:SRV,an:an_(),msg:'Attendance server running, version '+SRV});}
+async function logv(){try{const j=await call({k:"blog"});if(j.err)return j.err=="auth"?kick():alert(j.err);
+$("m").innerHTML=`<a href="#" onclick="show(3);return false">&larr; Back</a><h4>Blocked attempts (latest 200)</h4><table><tr><th>Time</th><th>Employee</th><th>Reason</th></tr>${j.list.map(x=>`<tr><td>${esc(x.t)}</td><td>${esc(x.n)}</td><td>${esc(x.w)}</td></tr>`).join("")||"<tr><td colspan=3>None</td></tr>"}</table>`}catch(e){alert("Needs internet connection")}}
 
-function doPost(e){
-  var lock=LockService.getScriptLock();lock.waitLock(20000);
-  try{var res=run_(JSON.parse(e.postData.contents));res.ver=SRV;res.an=an_();return out_(res);}
-  catch(x){return out_({err:'Server error: '+x,ver:SRV,an:an_()});}
-  finally{lock.releaseLock();}}
+// ---------- MASTER ADMIN: activity log + app name ----------
+let LOGR=[];
+const TYN={AUTH:"Login / Logout",RECORD:"Attendance record",STAFF:"Staff",OFFICE:"Office",APP:"App"};
+function alog(){if(!SM())return;stopGps();camStop();const td=iso(new Date());
+$("m").innerHTML=`<a href="#" onclick="show(3);return false">&larr; Back</a><h4>Activity log <small>(master admin only)</small></h4>
+<p class=sm>Login / logout of every user, and every attendance record, staff, office or app-name change made by admins. For one day choose the same date in both fields.</p>
+<div class=row><div><label class=sm>From date</label><input type=date id=lgf value="${td}"></div><div><label class=sm>To date</label><input type=date id=lgt value="${td}"></div></div>
+<div class=row><select id=lgy><option value="">All activity</option><option value="AUTH">Login / Logout only</option><option value="RECORD">Attendance record changes (add / edit / delete)</option><option value="OTHER">Staff / office / app changes</option></select><input id=lgq placeholder="Name or belt number (optional)"></div>
+<p class=msg id=lge></p><div class=row><button onclick=alogGo()>View log</button><button onclick=alogXl() style="background:#344054">Export Excel</button></div><p class=sm id=lgc></p><table id=lgb></table>`}
+async function alogGo(){const e=$("lge"),f=$("lgf").value,t=$("lgt").value;e.textContent="";
+if(!f||!t)return e.textContent="Select both From date and To date";if(f>t)return e.textContent="From date cannot be after To date";
+$("lgc").textContent="Loading...";$("lgb").innerHTML="";
+try{const j=await call({k:"alog",f:f.split("-").reverse().join("/"),t:t.split("-").reverse().join("/"),y:$("lgy").value,q:$("lgq").value.trim()});
+if(j.err){$("lgc").textContent="";return j.err=="auth"?kick():e.textContent=j.err}
+LOGR=j.list;$("lgc").textContent=j.list.length?j.list.length+" entr"+(j.list.length>1?"ies":"y")+" (newest first)"+(j.more?" - only the newest 2000 are shown, narrow the dates":""):"No activity found for the selected date(s)";
+$("lgb").innerHTML=j.list.length?"<tr><th>When</th><th>Who</th><th>What</th></tr>"+j.list.map(x=>`<tr><td>${esc(x.d)}<br>${esc(x.t)}</td><td>${esc(x.n)}<br><small>${esc(x.b)} | ${esc(x.r)}</small></td><td><b>${esc(x.a)}</b>${x.x?"<br>"+esc(x.x):""}</td></tr>`).join(""):""}
+catch(x){$("lgc").textContent="";e.textContent="Needs internet connection"}}
+function alogXl(){const e=$("lge");if(!LOGR.length)return e.textContent="Tap View log first - there is nothing to export";e.textContent="";
+const W=[["Sr.","Date","Time","Belt","Name","Role","Type","Action","Details"]].concat(LOGR.map((x,i)=>[i+1,x.d,x.t,x.b,x.n,x.r,TYN[x.y]||x.y,x.a,x.x]));
+const dm=v=>v.split("-").reverse().join(""),f=$("lgf").value,t=$("lgt").value;
+saveF("ActivityLog_"+dm(f)+(f!=t?"_to_"+dm(t):"")+".xlsx",xlsx(W,[6,12,12,10,34,14,18,22,80],"Activity log"))}
+// ---------- MASTER ADMIN: storage clean-up (auto-delete old photos and logs) ----------
+const RETS=[[0,"Never delete"],[7,"Delete after 7 days"],[15,"Delete after 15 days"],[21,"Delete after 21 days"],[30,"Delete after one month"]];
+const retO=()=>RETS.map(x=>`<option value="${x[0]}">${x[1]}</option>`).join("");
+const retT=n=>(RETS.find(x=>x[0]==n)||[0,"Never delete"])[1].toLowerCase();
+async function retv(){if(!SM())return;stopGps();camStop();
+$("m").innerHTML=`<a href="#" onclick="show(3);return false">&larr; Back</a><h4>Storage clean-up <small>(master admin only)</small></h4>
+<p class=sm>Old photos and logs take up space on the server (Google Drive / Google Sheet). Choose how long to keep them; older items are then deleted automatically every night (about 3 AM). Attendance records, staff, offices and transfers are never deleted - only the photo of an old record goes, and the record then shows "photo removed".</p>
+<label>Attendance photos (Google Drive)</label><select id=rph>${retO()}</select>
+<label>Logs (Activity log + Security log of blocked attempts)</label><select id=rlg>${retO()}</select>
+<p class=msg id=rme></p><div class=row><button onclick=retSave()>Save</button><button onclick=retRun() style="background:#344054">Delete old items now</button></div><p class=sm id=rmi>Loading current setting...</p>`;
+if(SV!==null&&SV<8.1)$("rme").textContent="The server is older than v8.1 - paste the new Code.gs and deploy a New version first.";
+try{const j=await call({k:"rget"});if(!$("rph"))return;if(j.err)return j.err=="auth"?kick():$("rme").textContent=j.err=="Unknown request"?"The server is older than v8.1 - paste the new Code.gs and deploy a New version first.":j.err;
+$("rph").value=j.ph;$("rlg").value=j.lg;
+$("rmi").innerHTML=(j.ph||j.lg?"Automatic daily clean-up: "+(j.tr?"<b>ON</b>":"<b>timer missing</b> - tap Save again"):"Automatic clean-up is OFF (never delete).")+(j.last?"<br>Last clean-up: "+esc(j.last):"")}
+catch(x){if($("rmi"))$("rmi").textContent="Needs internet connection"}}
+async function retSave(){const e=$("rme"),ph=Number($("rph").value),lg=Number($("rlg").value);e.textContent="";
+if((ph||lg)&&!confirm("Photos: "+retT(ph)+"\nLogs: "+retT(lg)+"\n\nOlder photos and log entries will be deleted from the server every night. Deleted photos cannot be brought back (they stay in Google Drive Trash for up to 30 days at best).\n\nSave?"))return;
+try{const j=await call({k:"rset",ph,lg});if(j.err)return j.err=="auth"?kick():e.textContent=j.err;
+alert("Saved.\nPhotos: "+retT(j.ph)+"\nLogs: "+retT(j.lg)+(j.warn?"\n\n"+j.warn:""));retv()}catch(x){e.textContent="Needs internet connection"}}
+async function retRun(){const e=$("rme"),ph=Number($("rph").value),lg=Number($("rlg").value);e.textContent="";
+if(!ph&&!lg)return e.textContent="Both options are \"Never delete\" - choose days and tap Save first";
+if(!confirm("Delete NOW all photos older than the saved setting and all old log entries?\n(Tap Save first if you just changed the options.)"))return;
+$("rmi").textContent="Deleting... this can take a minute. Please wait.";
+try{const j=await call({k:"rrun"});if(j.err){$("rmi").textContent="";return j.err=="auth"?kick():e.textContent=j.err}
+const o=j.res;alert("Done.\nPhotos deleted: "+o.photos+"\nActivity-log rows deleted: "+o.audit+"\nSecurity-log rows deleted: "+o.blocked+(o.more?"\n\nTime ran out - the rest will be deleted at the next run (tap again or wait for the night run).":"")+(o.err?"\n\n"+o.err+" photo(s) could not be deleted.":""));retv()}
+catch(x){$("rmi").textContent="";e.textContent="No answer from the server (internet?). Tap Delete old items now again to continue."}}
+async function ren(){if(!SM())return;const n=(prompt("New name of the app (3 to 40 characters)",AN)||"").replace(/\s+/g," ").trim();if(!n||n==AN)return;
+if(n.length<3||n.length>40)return alert("The name must be 3 to 40 characters");
+try{const j=await call({k:"aname",n});if(j.err)return j.err=="auth"?kick():alert(j.err);setAN(j.an);alert("App name changed to: "+j.an+"\nEvery user sees it the next time the app connects.")}catch(e){alert("Needs internet connection")}}
 
-// ---------- device checks, device binding and "marked through App / Web" ----------
-var DVH=['Belt','Name','App Device ID','App Device','App Bound On','App Signature','Web Device ID','Web Browser','Web Bound On','Last Seen','Last Source','Web Fingerprint'];
-function dvs_(){var ss=SpreadsheetApp.getActiveSpreadsheet(),s=ss.getSheetByName('Devices');
-  if(!s){s=ss.insertSheet('Devices');s.appendRow(DVH);s.getRange('A:L').setNumberFormat('@');}
-  else if(s.getLastColumn()<12){s.getRange(1,12).setValue('Web Fingerprint');s.getRange('L:L').setNumberFormat('@');}return s;}
-// Reason (text) why this phone / app must be refused, or '' if it passes. dv = report of the Android app (null from a web browser).
-function lockDev_(){try{var v=PropertiesService.getScriptProperties().getProperty('lockdev');return v===null?!!LOCK_DEVICE:v=='1';}catch(x){return !!LOCK_DEVICE;}}
-function reqApp_(){try{var v=PropertiesService.getScriptProperties().getProperty('reqapp');return v===null?!!REQUIRE_APP:v=='1';}catch(x){return !!REQUIRE_APP;}}
-function secWhy_(dv,d,u){
-  if(!dv){var pl=String(((d&&d.di)||{}).pl||'');   // iPhone / iPad (pl='ios') is always excluded from App-only mode: there is no iPhone app
-    if(reqApp_()&&!(u&&u.b==MASTER)&&pl!='ios')return 'not from official app';
-    if(WEB_IOS_ONLY&&!(u&&u.a)&&pl!='ios')return 'web not allowed from '+(pl||'unknown')+' (only iPhone may use the web; Android must use the app)';
-    return '';}
-  var w=['root','dev','adb','emu','mock','hook','dbg'].filter(function(x){return dv[x];});
-  if(BLOCK_AUTOTIME&&dv.at===false)w.push('autotime-off');
-  if(w.length)return 'device: '+w.join('+')+(dv.mockApps&&dv.mockApps.length?' apps='+String(dv.mockApps).slice(0,120):'');
-  if(ALLOWED_SIG){var ok=String(ALLOWED_SIG).split(',').some(function(x){x=x.replace(/\s+/g,'').toLowerCase();return x&&x==String(dv.sig||'').toLowerCase();});
-    if(!ok)return 'app signature not allowed (unofficial or modified app): '+String(dv.sig||'none').slice(0,16);}
-  return '';}
-// Clean device information sent by the app / browser. Source is App when the Android app's report is present, otherwise Web.
-function di_(d){var x=d.di||{},dv=d.dv||null,c=function(v,n){return cl_(String(v==null?'':v)).slice(0,n);};
-  var o={src:dv?'App':'Web',id:c(x.id,70),dm:c(((x.brand||'')+' '+(x.model||'')).trim(),70),os:c(x.os,50),bat:'',net:c(x.net,24),wf:'',av:c(x.av||x.appv,16),pl:c(x.pl,10),sig:c(x.sig,70),fp:c(x.fp,60)};
-  var b=Number(x.bat);if(x.bat!==''&&x.bat!=null&&isFinite(b))o.bat=Math.round(b)+'%'+(x.chg?' charging':'');
-  var ss=c(String(x.ssid==null?'':x.ssid).replace(/^"|"$/g,''),40),bs=c(x.bssid,20);if(bs=='02:00:00:00:00:00')bs='';
-  o.wf=ss&&ss!='<unknown ssid>'?ss+(bs?' ('+bs+')':''):bs;
-  return o;}
-// Lock a normal employee to one phone (app) and one browser (web). Returns '' if fine, else the message to show. Admins are not locked.
-function devChk_(u,d){
-  var i=di_(d);if(u.a)return '';
-  if(!lockDev_())return '';   // device lock is OFF: nothing is checked and nothing is locked
-  if(!i.id)return i.src=='App'?'This phone could not be identified. Update the app and try again.':'This browser blocks storage, so it cannot be identified. Use the Attendance app or allow site data.';
-  var s=dvs_(),v=s.getDataRange().getValues(),r=0,app=i.src=='App';
-  for(var q=1;q<v.length;q++)if(String(v[q][0])==u.b){r=q+1;break;}
-  var now=Utilities.formatDate(new Date(),TZ,'dd/MM/yyyy h:mm:ss a');
-  if(!r){s.appendRow([u.b,u.n,'','','','','','','',now,i.src,'']);r=s.getLastRow();}
-  var row=s.getRange(r,1,1,12).getValues()[0],aB=String(row[2]||''),wB=String(row[6]||'');
-  // v8.4: ONE device per employee. An old record that has BOTH an app phone and a web browser keeps only the channel used last.
-  if(aB&&wB){
-    if(String(row[10])=='App'){s.getRange(r,7,1,3).clearContent();s.getRange(r,12).setValue('');wB='';}
-    else{s.getRange(r,3,1,4).clearContent();aB='';}
-    audit_(u,'DEVICE','DEVICE LOCK CLEANED','Had both app phone and web browser locked; kept the '+(wB?'web browser':'app phone')+' only');}
-  // v8.4: the app and the web browser are ONE lock. Locked on an app phone = no web browser; locked on a browser = no app.
-  if(app&&wB){log_(u,d,'DEVICE MISMATCH (App): account is locked to a web browser / '+String(row[7]).slice(0,60)+' ; this is app on '+i.dm+' '+i.id.slice(0,8));
-    return 'This account is locked to a web browser on another device. Ask the admin to reset your device (Staff tab > Reset device).';}
-  if(!app&&aB){log_(u,d,'DEVICE MISMATCH (Web): account is locked to the Android app on '+String(row[3]).slice(0,60)+' ; this is a web browser '+i.dm+' '+i.id.slice(0,8));
-    return 'This account is locked to the Attendance app on another phone, so it cannot be used in a web browser. Ask the admin to reset your device (Staff tab > Reset device).';}
-  var bound=app?aB:wB;
-  if(!bound){
-    if(app)s.getRange(r,3,1,4).setValues([[i.id,i.dm+' | '+i.os,now,i.sig]]);else{s.getRange(r,7,1,3).setValues([[i.id,i.dm+' | '+i.os,now]]);s.getRange(r,12).setValue(i.fp||'');}
-    audit_(u,'DEVICE','DEVICE LOCKED',(app?'App on ':'Web browser ')+i.dm+' ('+i.id.slice(0,8)+')');
-  }else if(bound!=i.id){
-    log_(u,d,'DEVICE MISMATCH ('+i.src+'): locked to '+String(row[app?3:7]).slice(0,60)+' / this one is '+i.dm+' '+i.id.slice(0,8));
-    return 'This account is locked to another '+(app?'phone':'browser')+'. Ask the admin to reset your device (Staff tab > Reset device).';
-  }else if(!app){   // same browser ID: also compare the screen / hardware fingerprint, so a copied browser ID on another device is refused
-    var fp0=String(row[11]||'');
-    if(!fp0&&i.fp)s.getRange(r,12).setValue(i.fp);
-    else if(fp0&&i.fp&&fp0!=i.fp){log_(u,d,'DEVICE MISMATCH (Web): same browser ID but different device fingerprint: locked '+fp0+' / this one '+i.fp);
-      return 'This account is locked to another browser. Ask the admin to reset your device (Staff tab > Reset device).';}}
-  s.getRange(r,10,1,2).setValues([[now,i.src]]);return '';}
-// Staff list with each employee's locked device (admin screens only)
-function slist_(){var dm={};try{dvs_().getDataRange().getValues().slice(1).forEach(function(x){
-    var t=[];if(x[2])t.push('Phone: '+String(x[3]).split(' | ')[0]);if(x[6])t.push('Web: '+String(x[7]).split(' | ')[0]);dm[String(x[0])]=t.join(' ; ');});}catch(e){}
-  return staff_().map(function(x){var p=pub_(x);p.dv=dm[x.b]||'';return p;});}
-
-function run_(d){
-  var u=user_(d.b,d.p);if(!u)return {err:'auth'};
-  var k=d.k;
-
-  if(k=='login'){if(u.b==MASTER&&String(st_().getRange(u.r,4).getValue())!='Y')st_().getRange(u.r,4).setValue('Y'); // master is always Y in the Staff sheet
-    var lw=secWhy_(d.dv||null,d,u);
-    if(lw){log_(u,d,'LOGIN REFUSED - '+lw);return {err:/^not from official/.test(lw)?'Browsers are switched off for Android and PC. Please use the Attendance app.':/^web not allowed/.test(lw)?'The web portal is only for iPhone. Android users must install and use the Attendance app; PC / laptop browsers are not allowed.':'Security check failed on this phone. Use an unrooted phone with Developer options off, automatic date & time on, and no fake-location app.',dev:1};}
-    var lm=devChk_(u,d);if(lm)return {err:lm,dev:1};
-    audit_(u,'AUTH','LOGIN','('+di_(d).src+')');
-    return {ok:1,me:pub_(u),one:!!ONE_PER_DAY};}
-
-  if(k=='pw'){
-    var np=String(d.np||'');if(np.length<4)return {err:'Password must be at least 4 characters'};
-    st_().getRange(u.r,5).setValue(hash_(u.b,np));audit_(u,'AUTH','PASSWORD CHANGED','Changed own password');return {ok:1};}
-
-  if(k=='logout'){audit_(u,'AUTH','LOGOUT',d.at?'Logged out while offline at '+String(d.at).slice(0,40)+' (phone time); reported later':'');return {ok:1};}
-
-  if(k=='today'){var tm=marked_(sh_(),u.n,Utilities.formatDate(new Date(),TZ,'dd/MM/yyyy'));return tm?{ok:1,marked:true,mark:tm,me:pub_(u)}:{ok:1,marked:false,me:pub_(u)};}
-
-  // This employee's own marked days (today and later) - the app uses it to refuse dates that are already marked
-  if(k=='mydays'){var ms=sh_(),mv=ms.getDataRange().getValues(),t0=n8_(Utilities.formatDate(new Date(),TZ,'dd/MM/yyyy')),ml=[];
-    for(var mq=1;mq<mv.length;mq++)if(same_(mv[mq][3],u.n)){var kd=fmt_(mv[mq][0],'dd/MM/yyyy');
-      if(/^\d\d\/\d\d\/\d{4}$/.test(kd)&&n8_(kd)>=t0)ml.push({d:kd,s:String(mv[mq][4]),t:fmt_(mv[mq][1],'h:mm:ss a'),rf:mv[mq][15]===''||mv[mq][15]==null?'':fmt_(mv[mq][15],'dd/MM/yyyy'),rt:mv[mq][16]===''||mv[mq][16]==null?'':fmt_(mv[mq][16],'dd/MM/yyyy')});}
-    return {ok:1,list:ml};}
-
-  // Add / update an attendance record
-  if(k=='rec'){
-    if(ST.indexOf(d.s)<0)return {err:'Bad status',fatal:1};
-    if(!/^\d+$/.test(String(d.id)))return {err:'Bad id',fatal:1};
-    var s=sh_(),r=find_(s,d.id);
-    if(r&&d.rng)return {ok:1};                  // a From/To request that was already saved (retry) - ignore
-    if(!u.a){                                  // normal employee: own record only, never edit
-      if(r)return {ok:1};                      // already saved (retry) - ignore
-      d.e=u.n;d.o=u.o;
-      if(d.s=='Present'&&!d.la)return {err:'Location required',fatal:1};
-    }
-    if(!r){                                    // ---- device check on every NEW record (from the Android app's report) ----
-      var dv=d.dv||null,why=secWhy_(dv,d,u);
-      if(why){log_(u,d,why);return {err:/^not from official/.test(why)?'Browsers are switched off for Android and PC. Please use the Attendance app.':/^web not allowed/.test(why)?'The web portal is only for iPhone. Use the Attendance app on Android.':'Security check failed on this phone. Use an unrooted phone with Developer options off, automatic date & time on, and no fake-location app.',fatal:1};}
-      var dmsg=(u.a&&d.e!=u.n)?'':devChk_(u,d);   // an admin entering a record for somebody else is not locked to a phone
-      if(dmsg)return {err:dmsg,fatal:1,dev:1};
-    }
-    var dk=dayKey_(d),days=null;
-    if(!r&&d.s!='Present'&&(d.rng||(d.rf&&d.rt))){   // ---- From / To dates: one row per day ----
-      days=days_(d.rf,d.rt);
-      if(!days)return {err:'Invalid From / To date',fatal:1};
-      if(days.length>MAXDAYS)return {err:'Maximum '+MAXDAYS+' days at a time',fatal:1};
-      if(!u.a&&n8_(days[0])<n8_(dk))return {err:'From date cannot be in the past',fatal:1};
-    }
-    if(!r&&ONE_PER_DAY){                       // ---- once per employee per day (every day of the range) ----
-      var ex=conflict_(s,d.e,days||[dk]);
-      if(ex){var td=ex.d==dk;
-        return {err:u.a?'Attendance is already marked for '+d.e+(td?' today':' on '+ex.d)+'. Open View Attendance to edit it.':(td?'Attendance is already marked for today.':'Attendance is already marked on '+ex.d+' ('+ex.s+'). You cannot mark again for the same date.'),fatal:1,dup:1,mark:ex};}
-    }
-    var vals=[d.d,d.t,d.o,d.e,d.s,d.s=='OSD'?String(d.od||'').toUpperCase():'',d.s=='Present'?(d.la||''):'',d.s=='Present'?(d.lo||''):''];
-    var photo='';
-    if(d.photo&&d.s=='Present'){var pn=new Date();photo=folder_(Utilities.formatDate(pn,TZ,'yyyy-MM'),folder_('Attendance Photos',DriveApp.getRootFolder())).createFile(Utilities.newBlob(Utilities.base64Decode(d.photo.split(',')[1]),'image/jpeg',bt_(d.e)+'_'+Utilities.formatDate(pn,TZ,'yyyyMMdd_HHmmss')+'.jpg')).getUrl();}
-    if(r){var ob=s.getRange(r,1,1,8).getValues()[0],fnm=['Date','Time','Saanjh Kendra','Employee','Status','Outside Duty at'],fch=[];
-      for(var fi=0;fi<6;fi++){var ox=fi==0?fmt_(ob[0],'dd/MM/yyyy'):fi==1?fmt_(ob[1],'h:mm:ss a'):String(ob[fi]),nx=String(vals[fi]);if(ox!=nx)fch.push(fnm[fi]+': '+(ox||'-')+' -> '+(nx||'-'));}
-      if(fch.length)audit_(u,'RECORD','EDIT RECORD',String(ob[3])+' ('+fmt_(ob[0],'dd/MM/yyyy')+') | '+fch.join(' ; ')+' | ID '+d.id);
-      s.getRange(r,1,1,8).setValues([vals]);if(photo)s.getRange(r,9).setValue(photo);else if(d.s!='Present')s.getRange(r,9).setValue('');}
-    else{
-      // ---- trust checks on NEW records ----
-      var now=new Date(),gap=(now.getTime()-Number(d.id))/60000,f=[],dm='';   // gap>0: server is later than the phone's stamp
-      vals[0]=dk;
-      if(Math.abs(gap)<=TIMEOK){vals[1]=Utilities.formatDate(now,TZ,'h:mm:ss a').toLowerCase();} // trusted: use server time
-      else if(gap<0)f.push('PHONE CLOCK AHEAD by '+Math.round(-gap)+' min');
-      else if(d.off)f.push('MARKED OFFLINE - uploaded '+Math.round(gap)+' min later (phone time shown)');
-      else f.push('TIME GAP: phone time is '+Math.round(gap)+' min behind server (clock changed or late upload)');
-      if(d.dv&&d.dv.dbb)f.push('DEBUG BUILD of the app');
-      if(d.dv&&d.dv.mockApps&&d.dv.mockApps.length)f.push('FAKE-LOCATION APP INSTALLED: '+String(d.dv.mockApps).slice(0,100));
-      if(d.s=='Present'){
-        // behaviour checks against this employee's earlier Present punches (flag only - admin decides)
-        var all=s.getDataRange().getValues(),prev=[];
-        for(var z=all.length-1;z>=1&&prev.length<2;z--)if(all[z][3]==d.e&&all[z][6]!==''&&all[z][7]!=='')prev.push(all[z]);
-        if(prev.length){
-          var pv=prev[0],pm=Number(pv[13])||Number(pv[9]),jm=dist_(Number(d.la),Number(d.lo),Number(pv[6]),Number(pv[7])),mins=Math.max((now.getTime()-pm)/60000,1/60);
-          if(jm>MINJUMP&&jm/1000/(mins/60)>MAXKMH)f.push('IMPOSSIBLE MOVEMENT: '+(jm/1000).toFixed(1)+' km in '+mins.toFixed(1)+' min');
-          if(String(pv[6])==String(d.la)&&String(pv[7])==String(d.lo))f.push('IDENTICAL GPS POSITION as previous punch');
-          if(prev.length==2&&d.ac!==''&&d.ac!=null&&String(prev[0][14])==String(d.ac)&&String(prev[1][14])==String(d.ac))f.push('SAME GPS ACCURACY ('+d.ac+' m) on last 3 punches');
-        }
-        if(Number(d.ac)>MAXACC)f.push('LOW GPS ACCURACY '+Math.round(d.ac)+' m');
-        var oc=null,ol=offs_();for(var j=0;j<ol.length;j++)if(ol[j].o==d.o)oc=ol[j];
-        if(!oc||oc.la==null)f.push('Office location not set');
-        else{dm=dist_(Number(d.la),Number(d.lo),oc.la,oc.lo);if(dm>oc.r)f.push("OUTSIDE OFFICE AREA: "+dm+" m away (limit "+oc.r+" m)");}
-      }
-      var dinf=di_(d),dvc=[dinf.src+(u.a&&d.e!=u.n?' (entered by admin)':''),dinf.id,dinf.dm,dinf.os,dinf.bat,dinf.net,dinf.wf,dinf.av];
-      var rl=days||[dk],srvT=Utilities.formatDate(now,TZ,'dd/MM/yyyy h:mm:ss a'),acc=d.s=='Present'&&d.ac!==''&&d.ac!=null?String(d.ac):'';
-      for(var di=0;di<rl.length;di++){var v2=vals.slice();v2[0]=rl[di];
-        s.appendRow(v2.concat([photo,String(Number(d.id)+di),srvT,di?'':f.join(' | '),di?'':String(dm),String(now.getTime()),acc,days?days[0]:'',days?days[days.length-1]:''].concat(dvc)));}
-      if(u.a)audit_(u,'RECORD','ADD RECORD',d.e+' | '+d.s+' | '+(days?days[0]+(days.length>1?' to '+days[days.length-1]:''):dk)+' | '+d.o+(d.s=='OSD'&&d.od?' | OSD at '+d.od:''));
-    }
-    return {ok:1};}
-
-  // ---- everything below is ADMIN ONLY ----
-  if(!u.a)return {err:'Admin only'};
-  var sh,rw;
-
-  if(k=='recs'){
-    var rs=sh_(),rv=rs.getDataRange().getValues(),out=[];
-    for(var i=1;i<rv.length;i++){var x=rv[i];
-      if(x[0]===''&&x[3]==='')continue;                                   // empty row
-      if(x[9]===''||isNaN(Number(x[9]))){x[9]=String(Date.now()+i);rs.getRange(i+1,10).setValue(x[9]);}   // row typed by hand: give it an ID
-      out.push({d:fmt_(x[0],'dd/MM/yyyy'),t:fmt_(x[1],'h:mm:ss a'),o:String(x[2]),e:String(x[3]),s:String(x[4]),od:String(x[5]),la:String(x[6]),lo:String(x[7]),pu:String(x[8]),id:String(x[9]),srv:String(x[10]||''),f:String(x[11]||''),m:String(x[12]||''),rf:x[15]===''||x[15]==null?'':fmt_(x[15],'dd/MM/yyyy'),rt:x[16]===''||x[16]==null?'':fmt_(x[16],'dd/MM/yyyy'),src:String(x[17]||''),did:String(x[18]||''),dm:String(x[19]||''),os:String(x[20]||''),bat:String(x[21]||''),net:String(x[22]||''),wf:String(x[23]||''),av:String(x[24]||'')});}
-    return {ok:1,list:out};}
-
-  if(k=='blog'){var bs=SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Blocked');
-    return {ok:1,list:bs?bs.getDataRange().getValues().slice(1).reverse().slice(0,200).map(function(x){return {t:String(x[0]),b:String(x[1]),n:String(x[2]),w:String(x[3])};}):[]};}
-  if(k=='offs')return {ok:1,list:offs_()};
-  if(k=='soff'){
-    var la=Number(d.la),lo=Number(d.lo),rr=Number(d.r)||200,on=String(d.o||'').trim();
-    if(!on||on.length>60||!(la>=-90&&la<=90)||!(lo>=-180&&lo<=180))return {err:'Invalid office location'};
-    if(rr<20||rr>5000)return {err:'Distance must be between 20 and 5000 metres'};
-    offs_();var of_s=of_(),ov=of_s.getDataRange().getValues(),ri=0;
-    for(var q=1;q<ov.length;q++)if(String(ov[q][0])==on)ri=q+1;
-    if(!ri)return {err:'Saanjh Kendra not found. Add it first.'};
-    of_s.getRange(ri,1,1,4).setValues([[on,la,lo,rr]]);audit_(u,'OFFICE','SET OFFICE LOCATION',on+' | '+la.toFixed(6)+', '+lo.toFixed(6)+' | allowed '+rr+' m');
-    return {ok:1,list:offs_()};}
-
-  if(k=='oadd'){
-    var nm=String(d.o||'').replace(/\s+/g,' ').trim();
-    if(!nm||nm.length>60)return {err:'Enter the Saanjh Kendra name (up to 60 characters)'};
-    var ol2=offs_();
-    if(ol2.some(function(x){return x.o.toLowerCase()==nm.toLowerCase();}))return {err:'This Saanjh Kendra already exists'};
-    of_().appendRow([nm,'','',200]);audit_(u,'OFFICE','ADD OFFICE',nm);
-    return {ok:1,list:offs_()};}
-  if(k=='odel'){
-    var dn=String(d.o||''),ol3=offs_();
-    if(!ol3.some(function(x){return x.o==dn;}))return {err:'Saanjh Kendra not found'};
-    var cnt=staff_().filter(function(x){return x.o==dn;}).length;
-    if(cnt)return {err:cnt+' employee(s) are still in "'+dn+'". Move or delete them first (Staff tab).'};
-    var os=of_(),ov2=os.getDataRange().getValues();
-    for(var q2=ov2.length-1;q2>=1;q2--)if(String(ov2[q2][0])==dn)os.deleteRow(q2+1);
-    audit_(u,'OFFICE','DELETE OFFICE',dn);
-    return {ok:1,list:offs_()};}
-
-  if(k=='photo'){                              // send the saved photo of one record to the admin app (read from Drive by this script)
-    var ps=sh_(),pr=find_(ps,d.id);if(!pr)return {err:'Record not found'};
-    var pu=String(ps.getRange(pr,9).getValue()||''),pm=/\/d\/([\w-]+)/.exec(pu)||/[?&]id=([\w-]+)/.exec(pu);
-    if(!pm)return {err:/^Deleted/.test(pu)?'This photo was removed by the automatic clean-up (retention setting).':'No photo is saved for this record'};
-    try{var pb=DriveApp.getFileById(pm[1]).getBlob();return {ok:1,img:'data:'+(pb.getContentType()||'image/jpeg')+';base64,'+Utilities.base64Encode(pb.getBytes())};}
-    catch(x){return {err:'Photo file could not be read from Drive (deleted, or Drive access not authorised - run "setup" once in Apps Script and redeploy).'};}}
-  if(k=='del'){sh=sh_();rw=find_(sh,d.id);
-    if(rw){var dr=sh.getRange(rw,1,1,5).getValues()[0];sh.deleteRow(rw);
-      audit_(u,'RECORD','DELETE RECORD',String(dr[3])+' | '+dr[4]+' | '+fmt_(dr[0],'dd/MM/yyyy')+' '+fmt_(dr[1],'h:mm:ss a')+' | '+dr[2]+' | ID '+d.id);}
-    return {ok:1};}
-
-  // ---- MASTER ADMIN ONLY: read the activity log (one date or a From/To range) ----
-  if(k=='alog'){
-    if(u.b!=MASTER)return {err:'Only the master admin can view the log'};
-    var lf=pd_(d.f),lt=pd_(d.t);if(!lf||!lt||lt<lf)return {err:'Select a valid From date and To date'};
-    if((lt-lf)/864e5>366)return {err:'Maximum 366 days at a time'};
-    var ls=SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Audit Log'),lo2=[],lm=0;
-    if(ls){var lv=ls.getDataRange().getValues(),a8=n8_(d.f),b8=n8_(d.t),qq=String(d.q||'').toLowerCase().trim(),ty=String(d.y||'');
-      for(var li=lv.length-1;li>=1;li--){var x=lv[li],dk2=fmt_(x[0],'dd/MM/yyyy');
-        if(!/^\d\d\/\d\d\/\d{4}$/.test(dk2))continue;var n2=n8_(dk2);if(n2<a8||n2>b8)continue;
-        var ty2=String(x[5]);if(ty=='AUTH'&&ty2!='AUTH')continue;if(ty=='RECORD'&&ty2!='RECORD')continue;if(ty=='OTHER'&&(ty2=='AUTH'||ty2=='RECORD'))continue;
-        if(qq&&(String(x[2])+' '+x[3]+' '+x[6]+' '+x[7]).toLowerCase().indexOf(qq)<0)continue;
-        if(lo2.length>=2000){lm=1;break;}
-        lo2.push({d:dk2,t:fmt_(x[1],'h:mm:ss a'),b:String(x[2]),n:String(x[3]),r:String(x[4]),y:ty2,a:String(x[6]),x:String(x[7])});}}
-    return {ok:1,list:lo2,more:lm};}
-
-  // ---- MASTER ADMIN ONLY: change the name of the app ----
-  if(k=='aname'){
-    if(u.b!=MASTER)return {err:'Only the master admin can change the app name'};
-    var nn2=String(d.n||'').replace(/[\u0000-\u001f<>]/g,'').replace(/\s+/g,' ').trim();
-    if(nn2.length<3||nn2.length>40)return {err:'App name must be 3 to 40 characters'};
-    var on2=an_();PropertiesService.getScriptProperties().setProperty('appname',nn2);
-    audit_(u,'APP','CHANGE APP NAME',on2+' -> '+nn2);return {ok:1,an:nn2};}
-
-  // ---- MASTER ADMIN ONLY: automatic deletion of old photos and logs (storage saver) ----
-  if(k=='rget'||k=='rset'||k=='rrun'){
-    if(u.b!=MASTER)return {err:'Only the master admin can change the storage clean-up'};
-    if(k=='rget'){var g=retGet_();return {ok:1,ph:g.ph,lg:g.lg,last:g.last,tr:retHasTrig_()};}
-    if(k=='rset'){
-      var np=Number(d.ph),nl=Number(d.lg);
-      if(RETOPT.indexOf(np)<0||RETOPT.indexOf(nl)<0)return {err:'Choose one of the listed options'};
-      var og=retGet_(),pr=PropertiesService.getScriptProperties();
-      pr.setProperty('retPh',String(np));pr.setProperty('retLg',String(nl));
-      var te='';try{retTrig_(np>0||nl>0);}catch(x){te='The setting is saved, but the daily timer could not be created ('+x+'). Open the Google Sheet > menu Attendance > Turn on auto clean-up.';}
-      audit_(u,'APP','SET AUTO CLEAN-UP','Photos: '+retTxt_(og.ph)+' -> '+retTxt_(np)+' | Logs: '+retTxt_(og.lg)+' -> '+retTxt_(nl));
-      return {ok:1,ph:np,lg:nl,tr:retHasTrig_(),warn:te};}
-    var o=cleanup_(150000);return {ok:1,res:o,last:retGet_().last};}
-
-  if(k=='staff')return {ok:1,list:slist_()};
-  if(k=='lockdev'){                            // MASTER ADMIN ONLY: Device lock ON / OFF
-    if(u.b!=MASTER)return {err:'Only the master admin can change the device lock'};
-    if(d.on===true||d.on===false){var lw0=lockDev_();PropertiesService.getScriptProperties().setProperty('lockdev',d.on?'1':'0');
-      audit_(u,'DEVICE','DEVICE LOCK',(lw0?'ON':'OFF')+' -> '+(d.on?'ON':'OFF'));}
-    return {ok:1,on:lockDev_()};}
-  if(k=='reqapp'){                             // MASTER ADMIN ONLY: App-only mode ON / OFF (no rebuild needed)
-    if(u.b!=MASTER)return {err:'Only the master admin can change App-only mode'};
-    if(d.on===true||d.on===false){var was=reqApp_();PropertiesService.getScriptProperties().setProperty('reqapp',d.on?'1':'0');
-      audit_(u,'APP','APP-ONLY MODE',(was?'ON':'OFF')+' -> '+(d.on?'ON':'OFF'));}
-    return {ok:1,on:reqApp_()};}
-  if(k=='sdevall'){                            // MASTER ADMIN ONLY: reset every locked SAFARI browser at once (Chrome / Firefox / Opera / Edge and Android app phones are NOT touched)
-    if(u.b!=MASTER)return {err:'Only the master admin can reset all Safari devices'};
-    var wa=dvs_(),wv=wa.getDataRange().getValues(),wn=0;
-    for(var wq=1;wq<wv.length;wq++)if(/^Safari\b/.test(String(wv[wq][7]||''))){wa.getRange(wq+1,7,1,3).clearContent();wa.getRange(wq+1,12).clearContent();wn++;}
-    audit_(u,'DEVICE','RESET ALL SAFARI DEVICES',wn+' employee(s)');return {ok:1,n:wn,list:slist_()};}
-
-  var t=String(d.t||''),l=staff_(),i,tg=null;
-  for(i=0;i<l.length;i++)if(l[i].b==t)tg=l[i];
-  var S=st_();
-
-  if(k=='sadd'){
-    var b=String(d.sb||'').trim(),n=String(d.n||'').trim().toUpperCase();
-    if(!n||!/^[0-9A-Za-z]{1,10}$/.test(b))return {err:'Enter name and a valid belt number'};
-    if(l.some(function(x){return x.b==b;}))return {err:'Belt number already exists'};
-    if(!offs_().some(function(x){return x.o==String(d.so||'');}))return {err:'Select a valid Saanjh Kendra'};
-    S.appendRow([b,n,String(d.so||''),d.sa?'Y':'N',hash_(b,b)]);
-    audit_(u,'STAFF','ADD EMPLOYEE',n+' | belt '+b+' | '+String(d.so||'')+(d.sa?' | admin':''));
-    return {ok:1,list:slist_()};}
-
-  if(!tg)return {err:'Employee not found'};
-  if(tg.b==MASTER){                            // ---- master admin protection ----
-    if(k=='sdel')return {err:'The master admin cannot be deleted'};
-    if(k=='sadm')return {err:'The master admin always keeps admin rights'};
-    if(u.b!=MASTER)return {err:'Only the master admin can edit, reset or transfer the master admin'};}
-  if(k=='sdev'){                               // reset the locked phone / browser of an employee
-    var ds=dvs_(),dvv=ds.getDataRange().getValues(),hit=0;
-    for(var dq=1;dq<dvv.length;dq++)if(String(dvv[dq][0])==tg.b){ds.getRange(dq+1,3,1,4).clearContent();ds.getRange(dq+1,7,1,3).clearContent();ds.getRange(dq+1,12).clearContent();hit=1;}
-    audit_(u,'DEVICE','RESET DEVICE',tg.n+' | belt '+tg.b+(hit?'':' (nothing was locked)'));return {ok:1,list:slist_()};}
-  if(k=='sdel'){
-    if(tg.b==u.b)return {err:'You cannot delete yourself'};
-    S.deleteRow(tg.r);audit_(u,'STAFF','DELETE EMPLOYEE',tg.n+' | belt '+tg.b+' | '+tg.o);return {ok:1,list:slist_()};}
-  if(k=='srst'){S.getRange(tg.r,5).setValue(hash_(tg.b,tg.b));audit_(u,'STAFF','RESET PASSWORD',tg.n+' | belt '+tg.b);return {ok:1,list:slist_()};}
-  if(k=='sadm'){
-    if(tg.b==u.b)return {err:'You cannot remove your own admin rights'};
-    S.getRange(tg.r,4).setValue(d.a?'Y':'N');audit_(u,'STAFF',d.a?'MAKE ADMIN':'REMOVE ADMIN',tg.n+' | belt '+tg.b);return {ok:1,list:slist_()};}
-  if(k=='sedt'){
-    var nn=String(d.n||'').trim().toUpperCase();if(!nn)return {err:'Name required'};
-    if(d.so&&!offs_().some(function(x){return x.o==String(d.so);}))return {err:'Select a valid Saanjh Kendra'};
-    S.getRange(tg.r,2).setValue(nn);S.getRange(tg.r,3).setValue(String(d.so||tg.o));audit_(u,'STAFF','EDIT EMPLOYEE','belt '+tg.b+' | '+tg.n+' -> '+nn+(d.so&&d.so!=tg.o?' | office '+tg.o+' -> '+d.so:''));return {ok:1,list:slist_()};}
-  if(k=='strf'){                               // transfer to another Saanjh Kendra
-    var to=String(d.so||'');
-    if(!offs_().some(function(x){return x.o==to;}))return {err:'Select a valid Saanjh Kendra'};
-    if(tg.o==to)return {err:tg.n+' is already in '+to};
-    S.getRange(tg.r,3).setValue(to);logT_(u,tg,tg.o,to);audit_(u,'STAFF','TRANSFER EMPLOYEE',tg.n+' | belt '+tg.b+' | '+tg.o+' -> '+to);
-    return {ok:1,list:slist_()};}
-  return {err:'Unknown request'};
-}
-
-
-// =====================================================================
-//  AUTO-DELETE of old photos and logs  (the MASTER ADMIN chooses the days in the app: Staff tab > Storage clean-up)
-//  Photos  : files in Drive > Attendance Photos older than the chosen days are deleted; the record stays and its Photo cell says "Deleted ...".
-//  Logs    : rows older than the chosen days are deleted from the sheets "Audit Log" and "Blocked".
-//  Never touched: the Attendance sheet itself, Staff, Offices, Transfers, Monthly Report, Backups.
-//  0 = never delete. A timer runs once a day (about 3 AM) when at least one option is not "never".
-// =====================================================================
-var RETOPT=[0,7,15,21,30];   // allowed choices in days (0 = never delete, 30 = one month)
-function retTxt_(n){return n?'delete after '+n+' days':'never delete';}
-function retGet_(){var p=PropertiesService.getScriptProperties();
-  return {ph:Number(p.getProperty('retPh'))||0,lg:Number(p.getProperty('retLg'))||0,last:p.getProperty('retLast')||''};}
-function lbl_(t){return Utilities.formatDate(new Date(t),TZ,'dd/MM/yyyy');}            // India date of a moment
-function cutoff_(days){return pd_(lbl_(Date.now()))-days*86400000;}                    // anything dated before this is "older than <days> days"
-function retHasTrig_(){return ScriptApp.getProjectTriggers().some(function(t){return t.getHandlerFunction()=='retRun';});}
-function retTrig_(on){
-  ScriptApp.getProjectTriggers().forEach(function(t){if(t.getHandlerFunction()=='retRun')ScriptApp.deleteTrigger(t);});
-  if(on)ScriptApp.newTrigger('retRun').timeBased().everyDays(1).atHour(3).create();}
-// permanent delete when the Drive advanced service is switched on (frees the space at once); otherwise Drive Trash (space is freed when Trash is emptied / after 30 days)
-function rmFile_(f){var id=f.getId();
-  if(typeof Drive!=='undefined'){try{Drive.Files.remove(id);return;}catch(e){}}
-  f.setTrashed(true);}
-function sweepPh_(fo,cut,gone,st){
-  var fi=fo.getFiles();
-  while(fi.hasNext()){
-    if(Date.now()>st.end){st.more=1;return;}
-    var f=fi.next(),c=pd_(lbl_(f.getDateCreated().getTime()));
-    if(c&&c<cut){try{var id=f.getId();rmFile_(f);gone[id]=1;st.n++;}catch(x){st.err++;}}}
-  var sf=fo.getFolders();
-  while(sf.hasNext()){var s=sf.next(),n0=st.n;sweepPh_(s,cut,gone,st);
-    if(st.more)return;
-    if(st.n>n0&&!s.getFiles().hasNext()&&!s.getFolders().hasNext()){try{s.setTrashed(true);st.f++;}catch(x){}}}}
-// delete rows older than `cut` from a log sheet (first column starts with dd/MM/yyyy); returns how many
-function trimLog_(s,cut){
-  if(!s)return 0;var n=s.getLastRow();if(n<2)return 0;
-  var v=s.getRange(2,1,n-1,1).getValues(),del=[];
-  for(var i=0;i<v.length;i++){var c=pd_(fmt_(v[i][0],'dd/MM/yyyy').slice(0,10));if(c&&c<cut)del.push(i+2);}
-  var cnt=0,j=del.length-1;
-  while(j>=0){var end=del[j],start=end;while(j>0&&del[j-1]==start-1){j--;start=del[j];}
-    var c2=end-start+1;
-    try{s.deleteRows(start,c2);}catch(x){s.getRange(start,1,c2,s.getLastColumn()).clearContent();}   // a sheet cannot lose all its non-frozen rows
-    cnt+=c2;j--;}
-  return cnt;}
-// Does the whole job. budgetMs = time allowed for the photo part (Apps Script stops a run after 6 minutes; leftovers are done on the next run).
-function cleanup_(budgetMs){
-  var r=retGet_(),ss=SpreadsheetApp.getActiveSpreadsheet(),o={photos:0,folders:0,audit:0,blocked:0,more:0,err:0};
-  if(r.ph>0){
-    var cut=cutoff_(r.ph),gone={},st={n:0,f:0,err:0,more:0,end:Date.now()+budgetMs},it=DriveApp.getRootFolder().getFoldersByName('Attendance Photos');
-    while(it.hasNext()&&!st.more)sweepPh_(it.next(),cut,gone,st);
-    o.photos=st.n;o.folders=st.f;o.more=st.more;o.err=st.err;
-    if(st.n){var s=sh_(),n=s.getLastRow();                                   // tell each record its photo is gone
-      if(n>1){var rg=s.getRange(2,9,n-1,1),v=rg.getValues(),ch=0,tx='Deleted by auto clean-up on '+lbl_(Date.now());
-        for(var i=0;i<v.length;i++){var u=String(v[i][0]),m=/\/d\/([\w-]+)/.exec(u)||/[?&]id=([\w-]+)/.exec(u);if(m&&gone[m[1]]){v[i][0]=tx;ch=1;}}
-        if(ch)rg.setValues(v);}}}
-  if(r.lg>0){var c3=cutoff_(r.lg);
-    o.audit=trimLog_(ss.getSheetByName('Audit Log'),c3);
-    o.blocked=trimLog_(ss.getSheetByName('Blocked'),c3);}
-  var msg=Utilities.formatDate(new Date(),TZ,'dd/MM/yyyy h:mm a')+' - '+o.photos+' photo(s), '+o.audit+' activity-log row(s), '+o.blocked+' security-log row(s) deleted'+(o.more?' (time ran out - the rest is deleted on the next run)':'')+(o.err?' ('+o.err+' photo(s) could not be deleted)':'');
-  PropertiesService.getScriptProperties().setProperty('retLast',msg);
-  if(o.photos||o.audit||o.blocked){try{var n2=new Date();aud_().appendRow([Utilities.formatDate(n2,TZ,'dd/MM/yyyy'),Utilities.formatDate(n2,TZ,'h:mm:ss a'),'SYSTEM','Auto clean-up','System','APP','AUTO CLEAN-UP',cl_(o.photos+' photo(s), '+o.audit+' activity-log row(s), '+o.blocked+' security-log row(s) deleted | photos: '+retTxt_(r.ph)+' | logs: '+retTxt_(r.lg))]);}catch(x){}}
-  return o;}
-// run by the daily timer
-function retRun(){var l=LockService.getScriptLock();l.waitLock(30000);
-  try{var r=retGet_();if(r.ph>0||r.lg>0)cleanup_(240000);}finally{l.releaseLock();}}
-// menu helpers
-function retOn(){var r=retGet_();retTrig_(r.ph>0||r.lg>0);alert_(r.ph>0||r.lg>0?'Auto clean-up timer is ON (about 3 AM daily). Photos: '+retTxt_(r.ph)+'. Logs: '+retTxt_(r.lg)+'.':'Both options are set to "never delete", so no timer was needed. Choose days in the app (Staff tab > Storage clean-up).');}
-function retNow(){var o=cleanup_(240000);alert_(retGet_().last);}
-
-// =====================================================================
-//  Sheet tools  -  open the Google Sheet, menu "Attendance" appears
-// =====================================================================
-function onOpen(){
-  SpreadsheetApp.getUi().createMenu('Attendance')
-    .addItem('Set up / repair sheets','setup')
-    .addItem('Build monthly report','buildReport')
-    .addSeparator()
-    .addItem('Turn on daily backup','backupOn')
-    .addItem('Back up now','backupNow')
-    .addSeparator()
-    .addItem('Turn on auto clean-up (photos / logs)','retOn')
-    .addItem('Run clean-up now','retNow')
-    .addToUi();}
-
-function setup(){sh_();st_();of_();aud_();alert_('Sheets are ready: Attendance, Staff, Offices, Audit Log.');}
-function alert_(m){try{SpreadsheetApp.getUi().alert(m);}catch(e){}}
-
-// "Monthly Report" sheet: type a month like 11/2026 in B1 and the counts per employee update by themselves.
-function buildReport(){
-  var ss=SpreadsheetApp.getActiveSpreadsheet(),s=ss.getSheetByName('Monthly Report')||ss.insertSheet('Monthly Report');
-  st_();sh_();s.clear();
-  s.getRange('B1').setNumberFormat('@');
-  s.getRange(1,1,1,2).setValues([['Month (mm/yyyy) >',Utilities.formatDate(new Date(),TZ,'MM/yyyy')]]);
-  s.getRange(3,1,1,8).setValues([['Employee','Saanjh Kendra'].concat(ST).concat(['Total marked'])]);
-  var f=[];
-  for(var r=4;r<=103;r++){var sr=r-2;                                  // Staff row 2 is the first employee
-    var row=['=IF(Staff!B'+sr+'="","",Staff!B'+sr+')','=IF(Staff!C'+sr+'="","",Staff!C'+sr+')'];
-    for(var c=0;c<ST.length;c++){var col=String.fromCharCode(67+c);
-      row.push('=IF($A'+r+'="","",COUNTIFS(Attendance!$D:$D,$A'+r+',Attendance!$E:$E,'+col+'$3,Attendance!$A:$A,"*/"&$B$1))');}
-    row.push('=IF($A'+r+'="","",SUM(C'+r+':G'+r+'))');f.push(row);}
-  s.getRange(4,1,f.length,8).setFormulas(f);
-  s.setFrozenRows(3);
-  alert_('Report ready. Change the month in cell B1 (for example 12/2026).');}
-
-// Copies the whole spreadsheet into Drive folder "Attendance Backups" and keeps the newest 14 copies.
-function backupNow(){
-  var ss=SpreadsheetApp.getActiveSpreadsheet(),fo=folder_('Attendance Backups',DriveApp.getRootFolder());
-  DriveApp.getFileById(ss.getId()).makeCopy('Attendance backup '+Utilities.formatDate(new Date(),TZ,'yyyy-MM-dd HH:mm'),fo);
-  var it=fo.getFiles(),a=[];while(it.hasNext())a.push(it.next());
-  a.sort(function(p,q){return q.getDateCreated()-p.getDateCreated();});
-  a.slice(14).forEach(function(x){x.setTrashed(true);});}
-function backupOn(){
-  ScriptApp.getProjectTriggers().forEach(function(t){if(t.getHandlerFunction()=='backupNow')ScriptApp.deleteTrigger(t);});
-  ScriptApp.newTrigger('backupNow').timeBased().everyDays(1).atHour(2).create();
-  alert_('Daily backup is ON (about 2 AM). Copies go to Drive > Attendance Backups.');}
+// ---------- sync ----------
+function kick(){alert("Login no longer valid (password changed or employee removed). Please login again.");me=null;delete localStorage.sess;login()}
+async function sync(q){if(!me||!U())return;if(busy){again=1;return}busy=1;
+try{for(const id of [...DQ]){const j=await call({k:"del",id});if(j.err=="auth")return kick();if(j.ok){DQ=DQ.filter(x=>x!=id);sv()}}
+for(const r of R.filter(r=>!r.sy)){const j=await call({...r,k:"rec"});if(j.err=="auth")return kick();
+if(j.ok){if(isA()){r.sy=1;r.photo=""}else R=R.filter(z=>z!==r);sv()}else if(j.fatal){R=R.filter(z=>z!==r);if(j.dup&&!isA()&&j.mark&&j.mark.d==D(new Date()))TM={b:me.b,...j.mark};sv();alert(j.err);if($("tb"))rows();if(j.dup&&!isA()&&cur==0)form()}else if(j.err&&!q)alert(j.err)}
+if(!isA()){const was=!!myMark(),t=await call({k:"today"}),md=await call({k:"mydays"});if(md.ok){MD=md.list;sv()}
+let ch=0;if(t.ok&&t.me&&(t.me.o!=me.o||t.me.n!=me.n)){me.o=t.me.o;me.n=t.me.n;ch=1;sv()} // transferred / renamed by admin
+if(t.ok){if(t.marked)TM={b:me.b,...t.mark};else if(!R.some(r=>r.e==me.n&&r.d==D(new Date())))TM=null;sv();if(cur==0&&(ch||!!myMark()!=was))form()}else if(md.ok&&cur==0&&!!myMark()!=was)form()}
+if(isA()){const s=await call({k:"staff"});if(s.ok){SF=s.list;const m0=SF.find(z=>z.b==me.b);if(m0){me.o=m0.o;me.n=m0.n;me.m=!!m0.m;$("lg").className=SM()?"":"hide";setAN(AN)}}const oj=await call({k:"offs"});if(oj.ok)OFFS=oj.list;const j=await call({k:"recs"});
+if(j.ok){const pend=R.filter(r=>!r.sy),ids=new Set(pend.map(r=>r.id));
+R=[...pend,...j.list.map(x=>({...x,id:Number(x.id),sy:1})).filter(x=>!ids.has(x.id)&&!DQ.some(d=>d==x.id))].sort((a,b)=>b.id-a.id)}}
+sv();if($("tb"))rows();if($("mp"))pins();if(cur==3&&$("st"))srows()}
+catch(e){if(!q)alert("Could not sync - check internet. Records are saved on this phone.")}finally{busy=0;if(again){again=0;sync(1)}}}
+// ---- xlsx (no library needed: builds a real .xlsx file) ----
+const crcT=(()=>{const t=[];for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+const crc=b=>{let c=-1;for(let i=0;i<b.length;i++)c=crcT[(c^b[i])&255]^(c>>>8);return(c^-1)>>>0};
+function zipB(files){const E=new TextEncoder(),u16=v=>[v&255,v>>8&255],u32=v=>[v&255,v>>8&255,v>>16&255,v>>>24&255],P=[],C=[];let off=0;
+for(const[n,s]of files){const nb=E.encode(n),d=E.encode(s),c=crc(d),m=[...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0x21),...u32(c),...u32(d.length),...u32(d.length),...u16(nb.length),...u16(0)];
+P.push(new Uint8Array([0x50,0x4b,3,4,...m]),nb,d);
+C.push(new Uint8Array([0x50,0x4b,1,2,...u16(20),...m,...u16(0),...u16(0),...u16(0),...u32(0),...u32(off)]),nb);off+=30+nb.length+d.length}
+const cs=C.reduce((a,x)=>a+x.length,0);
+return new Blob([...P,...C,new Uint8Array([0x50,0x4b,5,6,0,0,0,0,...u16(files.length),...u16(files.length),...u32(cs),...u32(off),0,0])],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})}
+const xe=v=>String(v).replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g,"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])),
+cl=i=>{let s="";for(i++;i;i=Math.floor((i-1)/26))s=String.fromCharCode(65+(i-1)%26)+s;return s};
+function xlsx(rows,widths,name){const N="http://schemas.openxmlformats.org/",X='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+const sd=rows.map((r,ri)=>`<row r="${ri+1}">`+r.map((v,ci)=>{const a=cl(ci)+(ri+1);return typeof v=="number"?`<c r="${a}"><v>${v}</v></c>`:`<c r="${a}" t="inlineStr"${ri?"":' s="1"'}><is><t xml:space="preserve">${xe(v==null?"":v)}</t></is></c>`}).join("")+"</row>").join("");
+return zipB([["[Content_Types].xml",X+`<Types xmlns="${N}package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`],
+["_rels/.rels",X+`<Relationships xmlns="${N}package/2006/relationships"><Relationship Id="rId1" Type="${N}officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`],
+["xl/workbook.xml",X+`<workbook xmlns="${N}spreadsheetml/2006/main" xmlns:r="${N}officeDocument/2006/relationships"><sheets><sheet name="${xe(name)}" sheetId="1" r:id="rId1"/></sheets></workbook>`],
+["xl/_rels/workbook.xml.rels",X+`<Relationships xmlns="${N}package/2006/relationships"><Relationship Id="rId1" Type="${N}officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="${N}officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`],
+["xl/styles.xml",X+`<styleSheet xmlns="${N}spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`],
+["xl/worksheets/sheet1.xml",X+`<worksheet xmlns="${N}spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>${widths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join("")}</cols><sheetData>${sd}</sheetData></worksheet>`]])}
+// save a file: inside the Android app it goes to the Downloads folder; in a browser it downloads normally
+async function saveF(name,blob){if(window.Android&&Android.saveFile){const b=await new Promise(ok=>{const f=new FileReader();f.onload=()=>ok(f.result.split(",")[1]);f.readAsDataURL(blob)});
+const r=String(Android.saveFile(name,b,blob.type||"application/octet-stream"));alert(r.slice(0,3)=="OK:"?"Saved in "+r.slice(3):"Could not save file: "+r.slice(4));return}
+const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click()}
+// ---- export "View Attendance" to Excel for a From / To date range ----
+const blk=r=>{const set=new Set(R.filter(z=>z.e==r.e&&z.s==r.s&&/^\d\d\/\d\d\/\d{4}$/.test(z.d)).map(z=>dn(z.d)));let a=dn(r.d),b=a;while(set.has(a-864e5))a-=864e5;while(set.has(b+864e5))b+=864e5;return[fdm(a),fdm(b)]};
+const per=(r,k)=>{if(r.s=="Present")return"";if(r[k])return r[k];if(!/^\d\d\/\d\d\/\d{4}$/.test(r.d||""))return r.d||"";const b=blk(r);return k=="rf"?b[0]:b[1]}; // saved period; if missing, the consecutive days of the same employee + status
+function xl(){const e=$("xe"),f=$("xf").value,t=$("xt").value;e.textContent="";
+if(!f||!t)return e.textContent="Select both From date and To date";if(f>t)return e.textContent="From date cannot be after To date";
+const a=f.replace(/-/g,""),b=t.replace(/-/g,""),g=flt0(),L=R.filter(r=>{const k=n8(r.d);return k>=a&&k<=b&&g(r)}).sort((x,y)=>n8(x.d)==n8(y.d)?x.id-y.id:n8(x.d)<n8(y.d)?-1:1);
+if(!L.length)return e.textContent="No attendance records between these dates";
+const K=["d","t","o","e","s","od","la","lo","m","f","rf","rt","src","dm","os","bat","net","wf","did","av"],n=v=>v!==""&&v!=null&&!isNaN(v)?Number(v):"",
+rows=[["Sr.","Date","Time","Saanjh Kendra","Employee","Status","Outside Duty at","Latitude","Longitude","Distance from office (m)","Flag","Period From","Period To","Marked through (App/Web)","Device","Android / OS","Battery","Network","Wi-Fi (name / BSSID)","Device ID","App version"]].concat(L.map((r,i)=>[i+1,...K.map(k=>["la","lo","m"].includes(k)?n(r[k]):k=="rf"||k=="rt"?per(r,k):r[k]==null?"":r[k])])),
+dm=x=>x.split("-").reverse().join("");
+saveF("Attendance_"+dm(f)+"_to_"+dm(t)+".xlsx",xlsx(rows,[6,12,12,22,34,10,18,11,11,14,40,12,12,14,26,16,12,12,30,20,10],"Attendance"));e.textContent=L.length+" record(s) exported"}
+// ---- end xlsx ----
+function csv(){const h=["d","t","o","e","s","od","la","lo","m","f","rf","rt","src","dm","os","bat","net","wf","did","av"],q=v=>'"'+String(v||"").replace(/"/g,'""')+'"',x=[["Date","Time","Saanjh Kendra","Employee","Status","Outside Duty at","Lat","Lng","Distance from office (m)","Flag","Period From","Period To","Marked through","Device","OS","Battery","Network","Wi-Fi","Device ID","App version"].join(",")].concat(R.map(r=>h.map(k=>q(k=="rf"||k=="rt"?per(r,k):r[k])).join(",")));
+saveF("attendance.csv",new Blob([x.join("\n")],{type:"text/csv"}))}
+addEventListener("online",()=>{lqf();sync(1)});setInterval(()=>{if(!document.hidden&&me&&navigator.onLine)sync(1);if(me&&!isA()&&cur==0&&!!myMark()!=!!$("mk"))form()},60000);document.addEventListener("visibilitychange",()=>{if(!document.hidden&&me)blocked()});setAN(AN);me&&me.b?app():login();lqf();
+</script></body></html>
