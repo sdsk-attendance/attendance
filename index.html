@@ -1,0 +1,362 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Attendance"><link rel="apple-touch-icon" href="data:image/png;base64,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"><link rel="icon" type="image/png" href="data:image/png;base64,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"><meta name="theme-color" content="#163A5F"><title>Attendance SDSK-Central</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+header{padding-top:calc(14px + env(safe-area-inset-top,0px))!important}
+:root{--navy:#163A5F;--teal:#087E8B;--teal2:#18A6A6;--bg:#F4F7FA;--card:#fff;--line:#DCE3EA;--txt:#344054;--mut:#667085;--hs:#EAF2F8;--green:#16A34A;--red:#DC2626;--amber:#D97706}
+*{box-sizing:border-box}body{margin:0;font:15px "Segoe UI",system-ui,-apple-system,Roboto,sans-serif;background:var(--bg);color:var(--txt);padding-bottom:78px}
+header{background:var(--navy);color:#fff;padding:14px 16px;font-size:18px;font-weight:700;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px;position:sticky;top:0;z-index:1000;box-shadow:0 2px 8px rgba(22,58,95,.25)}
+header a{color:var(--hs);font-size:13px;font-weight:400;margin-left:12px}header small{width:100%;color:var(--hs);font-size:13px;font-weight:400}
+main{padding:16px;background:var(--bg);min-height:85vh;max-width:900px;margin:0 auto}
+label{display:block;margin:14px 0 6px;font-size:14px;color:var(--txt)}label b{color:var(--txt)}
+input,select{width:100%;padding:15px 14px;border:1px solid var(--line);border-radius:12px;font-size:15px;background:var(--card);color:var(--txt);font-family:inherit}
+select{-webkit-appearance:none;appearance:none;padding-right:38px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23667085' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+input:focus,select:focus{outline:2px solid var(--teal2);outline-offset:-1px;border-color:var(--teal2)}
+input[readonly]{background:#EEF2F6;color:var(--mut)}
+button{background:var(--teal);color:#fff;border:0;padding:15px;border-radius:12px;font-size:16px;font-weight:600;width:100%;margin-top:18px;font-family:inherit;box-shadow:0 1px 2px rgba(8,126,139,.3)}
+button:disabled{opacity:.6}button.r{background:var(--red);box-shadow:none}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--navy);z-index:1000;box-shadow:0 -2px 8px rgba(22,58,95,.25);padding-bottom:env(safe-area-inset-bottom,0)}
+nav div{flex:1;text-align:center;color:#B8C7D9;padding:10px 2px 9px;font-size:12px;display:flex;flex-direction:column;align-items:center;gap:3px;border-top:3px solid transparent}
+nav div svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav .on{color:var(--teal2);border-top:3px solid var(--teal2);font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}td,th{padding:10px 8px;border-bottom:1px solid #E6ECF2;text-align:left}th{background:#EAF2F8;color:var(--navy);font-weight:600}
+tr[onclick]:active{background:#EAF2F8}
+a{color:var(--teal)}h3,h4{color:var(--navy)}
+img{max-width:100%;border-radius:12px;margin-top:8px}.hide{display:none}.msg{color:var(--red);font-size:13px}
+.row{display:flex;gap:8px}.row>*{flex:1}.pp button{padding:6px;font-size:13px;margin-top:6px}.sm{font-size:12px;color:var(--mut)}
+</style></head><body>
+<header><span id=an onclick="ren()">Attendance SDSK-Central</span><span id=hl class=hide><a id=lg class=hide href="#" onclick="alog();return false">View Log</a><a href="#" onclick="sync();return false">Sync</a><a id=cv href="#" onclick="csv();return false">CSV</a><a href="#" onclick="pw();return false">Password</a><a href="#" onclick="out();return false">Logout</a></span><small id=who></small></header>
+<main id="m"></main><nav id="nv" class=hide></nav>
+<script>
+const URL0="https://script.google.com/macros/s/AKfycbxwnMIo6enxgzitkXGyBB4VwX6D0ZvZ8Nc4MpqjRHksX3eeFso_FXv-gQMuUp0MeYHI6g/exec"; // paste your Google Apps Script web app URL here once, so staff never have to
+const DEFOFF=["SDSK-Central","PSSK D-Division","PSSK E-Division","PSSK Gate Hakima","PSSK Islamabad"]; // used only until the list loads from the server
+const offNames=()=>OFFS.length?OFFS.map(x=>x.o):DEFOFF;
+const ST=["Present","Leave","OSD","Rest","Medical"];
+const $=id=>document.getElementById(id),opt=a=>a.map(x=>`<option>${esc(x)}</option>`).join("");
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ld=(k,d)=>{try{return JSON.parse(localStorage[k])||d}catch(e){return d}};
+let AN=localStorage.an||"Attendance SDSK-Central",LQ=ld("lq",[]),R=ld("att",[]).map(r=>({...r,id:Number(r.id)})),SF=ld("staff2",[]),TM=ld("tm",null),OFFS=ld("offs",[]),DQ=ld("dq",[]),MD=ld("md",[]),me=ld("sess",null),photo="",pos=null,ed=null,map=null,omap=null,wid=null,cur=0,back=1,busy=0,again=0;
+const REQUIRE_APP=false; // set true once everyone uses the Android app: browsers are then refused
+const DV=()=>{try{return window.Android?JSON.parse(Android.report()):null}catch(e){return null}}; // device report from the Android app
+const devBad=()=>{const v=DV();return v?!!(v.root||v.dev||v.adb||v.emu||v.mock):REQUIRE_APP};
+function blocked(){if(!devBad())return false;camStop();stopGps();$("hl").className="hide";$("nv").className="hide";$("who").textContent="";
+$("m").innerHTML='<h3>Security check failed</h3><p>This app works only on phones that are <b>not rooted</b>, have <b>Developer options turned off</b> and have no fake-location app running.</p>'+(window.Android?"":"<p>Please open the official Attendance app.</p>")+'<button onclick="location.reload()">Check again</button>';return true}
+const APPV=8.2,NEEDV=8.0;let SV=null,warned=0; // APPV = this app, NEEDV = oldest server (Code.gs) version this app can work with
+const srvOld=()=>SV!==null&&SV<NEEDV;
+const MAXACC=150; // GPS accuracy (metres) needed before "Present" can be saved
+const U=()=>URL0||localStorage.url||"",isA=()=>!!(me&&me.a);
+const sv=()=>{try{localStorage.att=JSON.stringify(R);localStorage.staff2=JSON.stringify(SF);localStorage.offs=JSON.stringify(OFFS);localStorage.tm=JSON.stringify(TM);localStorage.dq=JSON.stringify(DQ);localStorage.md=JSON.stringify(MD);localStorage.sess=JSON.stringify(me)}catch(e){alert("Phone storage full - tap Sync first")}who()};
+const setAN=n=>{n=String(n||"").trim();if(!n)return;AN=n;try{localStorage.an=n}catch(e){}const e=$("an");if(e){e.textContent=n;e.style.cursor=me&&me.m?"pointer":""}document.title=n};
+const NI=['<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 13l2 2 4-4"/>','<rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/>','<path d="M12 21s7-6.2 7-11a7 7 0 10-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>','<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.3"/><path d="M16 14.2c2.9.3 5 2.5 5 5.8"/>','<path d="M4 21V7l8-4v18M12 9l8 3v9M2 21h20M8 10v.01M8 14v.01M16 15v.01M16 18v.01"/>'];
+const stc=x=>`<b style="color:${{Present:"#16A34A",Leave:"#D97706",Medical:"#DC2626",OSD:"#087E8B",Rest:"#344054"}[x]||"#344054"}">${esc(x)}</b>`;
+const MARKED="Attendance is already marked for today.";
+// what this employee has already marked today (from this phone's queue, or remembered from the server)
+const n8=x=>x.split("/").reverse().join(""),covers=(r,d)=>r.rf?n8(r.rf)<=n8(d)&&n8(d)<=n8(r.rt):r.d==d;
+const myMark=()=>{if(!me||isA()||me.one===false)return null;const d=D(new Date()),p=R.find(r=>r.e==me.n&&covers(r,d));if(p)return{s:p.s,t:p.t,rf:p.rf,rt:p.rt};const q=MD.find(z=>z.d==d);if(q)return{s:q.s,t:q.t,rf:q.rf,rt:q.rt};return TM&&TM.b==me.b&&TM.d==d?TM:null};
+function markedv(m){stopGps();camStop();$("m").innerHTML=`<div id=mk style="text-align:center;padding:36px 10px"><div style="font-size:54px;color:#16A34A">&#10004;</div><h3>Attendance is already marked</h3><p>Today: <b>${esc(m.s)}</b>${m.rf&&m.rf!=m.rt?` (${esc(m.rf)} to ${esc(m.rt)})`:""} ${m.t?" at "+esc(m.t):""}</p><p class=sm>Attendance can be marked only once a day. If something is wrong, tell the admin.</p></div>`}
+const who=()=>{if(me&&$("who")){const n=R.filter(r=>!r.sy).length;$("who").textContent=me.n+" | "+me.o+(isA()?" | ADMIN":"")+(n?` | \u23F3 ${n} not uploaded yet (will upload when online)`:" | all uploaded")+(srvOld()?" | \u26A0 SERVER OLD - redeploy Code.gs":"")+" | app v"+APPV}};
+const p2=n=>("0"+n).slice(-2),D=t=>p2(t.getDate())+"/"+p2(t.getMonth()+1)+"/"+t.getFullYear(),iso=t=>t.getFullYear()+"-"+p2(t.getMonth()+1)+"-"+p2(t.getDate()),T=t=>t.toLocaleTimeString("en-IN");
+// list of dd/mm/yyyy days from iso a to iso b (inclusive); null if invalid or more than 90 days
+const span=(a,b)=>{const ok=/^\d{4}-\d\d-\d\d$/;if(!ok.test(a)||!ok.test(b))return null;const o=[];for(let t=Date.UTC(+a.slice(0,4),+a.slice(5,7)-1,+a.slice(8,10)),e=Date.UTC(+b.slice(0,4),+b.slice(5,7)-1,+b.slice(8,10));t<=e;t+=864e5){const z=new Date(t);o.push(p2(z.getUTCDate())+"/"+p2(z.getUTCMonth()+1)+"/"+z.getUTCFullYear());if(o.length>90)return null}return o};
+const dn=x=>Date.UTC(+x.slice(6),+x.slice(3,5)-1,+x.slice(0,2)),fdm=t=>{const z=new Date(t);return p2(z.getUTCDate())+"/"+p2(z.getUTCMonth()+1)+"/"+z.getUTCFullYear()};
+// is there already a record for employee e on day x (dd/mm/yyyy)?  Saved rows count by their own day; rows still waiting to upload count by their whole period
+const has=(e,x)=>R.find(r=>r.e==e&&(r.sy?r.d==x:covers(r,x)));
+// employee only: first of these days that is already marked (this phone's waiting records + days remembered from the server)
+const clash=ds=>{if(!me||isA()||me.one===false)return null;for(const x of ds){const r=has(me.n,x);if(r)return{d:x,s:r.s};const m=MD.find(z=>z.d==x);if(m)return{d:x,s:m.s}}return null};
+// every request carries the logged-in belt number + password; the server decides what is allowed
+const call=async(o,cr)=>{const j=await(await fetch(U(),{method:"POST",body:JSON.stringify({...o,...(cr||{b:me.b,p:me.p})})})).json();
+if(j&&typeof j=="object"){if(j.an&&j.an!=AN)setAN(j.an);SV=parseFloat(j.ver)||0;if(srvOld()&&!warned){warned=1;setTimeout(()=>alert("WARNING: the server (Google Apps Script) is an OLD version, so From / To dates will NOT be saved correctly.\n\nIn Apps Script: Deploy > Manage deployments > Edit > New version > Deploy, and make sure URL0 in this app is the URL of that same deployment."),50)}who()}return j};
+
+function login(){if(blocked())return;setAN(AN);$("lg").className="hide";if(U()&&navigator.onLine)fetch(U()).then(r=>r.json()).then(j=>{if(j&&j.an)setAN(j.an)}).catch(()=>{});$("hl").className="hide";$("nv").className="hide";$("who").textContent="";
+$("m").innerHTML=`<label>Belt number (user name)</label><input id=u inputmode=numeric autocomplete=username><label>Password</label><input id=p type=password autocomplete=current-password>${U()?"":"<label>Server URL (one-time setup)</label><input id=url placeholder='https://script.google.com/macros/s/.../exec'>"}<p class=msg id=err></p><button id=lb onclick=go()>Login</button><p class=sm>First login: your password is your belt number. Please change it from the Password link.</p>`}
+async function go(){const b=$("u").value.trim(),p=$("p").value,er=m=>$("err").textContent=m;
+if($("url")&&$("url").value.trim())localStorage.url=$("url").value.trim();
+if(!b||!p)return er("Enter belt number and password");if(!U())return er("Server URL missing");
+$("lb").disabled=true;er("");
+try{const j=await call({k:"login"},{b,p});if(j.err)throw 0;
+me={...j.me,p,one:j.one};SF=[];MD=[];R=R.filter(r=>!r.sy||isA());sv();app();lqf()}
+catch(e){$("lb").disabled=false;er(e===0?"Wrong belt number or password":"No connection. First login needs internet.")}}
+async function out(){if(R.some(r=>!r.sy)&&!confirm("Some records are not synced yet and will stay on this phone. Logout anyway?"))return;
+const c={b:me.b,p:me.p},at=D(new Date())+" "+T(new Date());let ok=false;
+if(navigator.onLine){try{const j=await Promise.race([call({k:"logout"}),new Promise((_,no)=>setTimeout(()=>no(0),6000))]);ok=!!(j&&j.ok)}catch(e){}}
+if(!ok){LQ.push({...c,at});try{localStorage.lq=JSON.stringify(LQ)}catch(e){}} // offline: the logout is reported when the phone is online again
+me=null;delete localStorage.sess;login()}
+// send logouts that could not be reported earlier (uses the credentials saved at that time; dropped if they are no longer valid)
+let lqb=0;async function lqf(){if(lqb||!LQ.length||!navigator.onLine||!U())return;lqb=1;
+try{for(const q of [...LQ]){const j=await call({k:"logout",at:q.at},{b:q.b,p:q.p});if(j&&(j.ok||j.err=="auth")){LQ=LQ.filter(z=>z!==q);localStorage.lq=JSON.stringify(LQ)}else break}}catch(e){}lqb=0}
+async function pw(){const p=prompt("New password (min 4 characters)");if(!p)return;if(p.length<4)return alert("Too short");
+try{const j=await call({k:"pw",np:p});if(j.err)return alert(j.err);me.p=p;sv();alert("Password changed")}catch(e){alert("Needs internet connection")}}
+function app(){if(blocked())return;$("hl").className="";$("cv").className=isA()?"":"hide";$("lg").className=SM()?"":"hide";setAN(AN);$("nv").className="";who();
+$("nv").innerHTML=(isA()?["Mark Attendance","View Attendance","Location view","Staff","Offices"]:["Mark Your Attendance Here"]).map((x,i)=>`<div id=t${i} onclick="show(${i})"><svg viewBox="0 0 24 24">${NI[i]}</svg>${x}</div>`).join("");show(0);sync(1)}
+function show(n){cur=n;stopGps();camStop();[...$("nv").children].forEach((c,i)=>c.className=i==n?"on":"");[()=>form(),list,mapv,staffv,offv][n]()}
+function emps(){$("e").innerHTML='<option value="">Select</option>'+opt(SF.filter(s=>s.o==$("o").value).map(s=>s.n))}
+
+// ---------- mark attendance ----------
+function form(r){camStop();if(!isA()){const m=myMark();if(m)return markedv(m)}ed=isA()&&r||null;photo="";pos=null;const a=isA(),x=ed||{};
+$("m").innerHTML=`<label>Date <b>*</b></label><input id=d ${ed?"":"readonly"} value="${esc(x.d)}"><label>Time <b>*</b></label><input id=t ${ed?"":"readonly"} value="${esc(x.t)}">
+<label>Saanjh Kendra Name <b>*</b></label>${a?`<select id=o onchange=emps()><option value="">Select</option>${opt(offNames())}</select>`:`<input id=o readonly value="${esc(me.o)}">`}
+<label>Employee Name <b>*</b></label>${a?`<select id=e><option value="">Select</option></select>`:`<input id=e readonly value="${esc(me.n)}">`}
+<label>Status <b>*</b></label><select id=s onchange=stat()><option value="">Select</option>${opt(ST)}</select>
+<div id=rg class=hide><div class=row><div><label>From date <b>*</b></label><input type=date id=fd onchange=rgc() oninput=rgc()></div><div><label>To date <b>*</b></label><input type=date id=td onchange=rgc() oninput=rgc()></div></div><p class=sm id=rgn></p></div>
+<div id=osd class=hide><label>Outside Duty at <b>*</b></label><input id=od value="${esc(x.od)}" autocapitalize="characters" style="text-transform:uppercase" oninput="var a=this.selectionStart,b=this.selectionEnd;this.value=this.value.toUpperCase();try{this.setSelectionRange(a,b)}catch(e){}"></div>
+<div id=pr class=hide><label>Location <b>*</b></label><input id=loc readonly placeholder="Fetching location..."><label>Live photo - front camera <b>*</b></label><video id=cam autoplay playsinline muted class=hide style="width:100%;transform:scaleX(-1);border-radius:12px;background:#000;margin-top:8px"></video><img id=pv class=hide><button type=button id=cb onclick=camStart()>Open front camera</button></div>
+<p class=msg id=err></p><button onclick=add()>${ed?"Update":"Save"}</button>${ed?'<button class=r onclick="show(back)">Cancel</button>':""}`;
+if(a){$("o").value=x.o||me.o;emps();$("e").value=x.e||me.n}
+if(ed){$("s").value=x.s;stat()}else tick()}
+function tick(){if(!$("d")||ed)return;const n=new Date();$("d").value=D(n);$("t").value=T(n);setTimeout(tick,1000)}
+function rgc(){const a=$("fd"),b=$("td");if(a.value&&(!b.value||b.value<a.value))b.value=a.value;if(a.value)b.min=a.value;
+const ds=a.value&&b.value?span(a.value,b.value):null,n=ds?ds.length:0,c=ds&&!ed?clash(ds):null;
+$("rgn").style.color=c?"#c00":"";
+$("rgn").textContent=c?"Already marked on "+c.d+" ("+c.s+"). Choose dates that are not already marked.":n?n+" day"+(n>1?"s":"")+": "+ds[0]+(n>1?" to "+ds[n-1]:""):a.value&&b.value?"Maximum 90 days at a time":""}
+function stat(){const s=$("s").value;const rg=!!s&&s!="Present"&&!ed;$("rg").className=rg?"":"hide";
+if(rg){const t0=iso(new Date());if(!$("fd").value){$("fd").value=t0;$("td").value=t0}if(!isA())$("fd").min=$("td").min=t0;rgc()}
+$("osd").className=s=="OSD"?"":"hide";$("pr").className=s=="Present"&&!ed?"":"hide";if(s!="Present")camStop();else if(!ed){if(!pos)loc();if(!photo&&!camS)camStart()}}
+const stopGps=()=>{if(wid!=null){navigator.geolocation.clearWatch(wid);wid=null}};
+// keeps improving the fix until it is accurate enough (<= MAXACC metres)
+function loc(){stopGps();wid=navigator.geolocation.watchPosition(p=>{if(!$("loc"))return stopGps();
+pos={la:p.coords.latitude.toFixed(6),lo:p.coords.longitude.toFixed(6),ac:Math.round(p.coords.accuracy)};
+const ok=pos.ac<=MAXACC;$("loc").value=`${pos.la}, ${pos.lo}  (${pos.ac} m)${ok?"":" - waiting for better GPS signal..."}`;const W="GPS signal is weak. Go outdoors / near a window and wait.";if(!ok)$("err").textContent=W;else if($("err").textContent==W)$("err").textContent="";if(ok)stopGps()},
+()=>$("err").textContent="Please switch on GPS and allow location access",{enableHighAccuracy:true,timeout:30000,maximumAge:0})}
+let camS=null;
+const camStop=()=>{if(camS){camS.getTracks().forEach(t=>t.stop());camS=null}};
+// Front camera only (facingMode "exact"), live preview + capture button. There is no gallery / file picker, so an old photo cannot be uploaded.
+async function camStart(){camStop();photo="";const v=$("cam");if(!v)return;$("pv").className="hide";v.className="";$("cb").textContent="Capture photo";$("cb").onclick=camShot;
+try{const gum=c=>navigator.mediaDevices.getUserMedia(c);let st;
+try{st=await gum({video:{facingMode:{exact:"user"},width:{ideal:640}},audio:false})}
+catch(e){if(/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)||!/Overconstrained|NotFound/.test(e.name))throw e;st=await gum({video:{width:{ideal:640}},audio:false})} // phones: front camera only. Desktop webcams often have no "front" label, so a PC may use its webcam.
+if(!$("cam")){st.getTracks().forEach(t=>t.stop());return}camS=st;v.srcObject=st}
+catch(e){v.className="hide";$("cb").textContent="Open front camera";$("cb").onclick=camStart;$("err").textContent="Front camera could not be opened. Allow camera permission."}}
+function camShot(){const v=$("cam");if(!camS||!v.videoWidth)return $("err").textContent="Camera not ready yet";
+const k=Math.min(1,480/v.videoWidth),c=document.createElement("canvas");c.width=v.videoWidth*k;c.height=v.videoHeight*k;c.getContext("2d").drawImage(v,0,0,c.width,c.height);
+photo=c.toDataURL("image/jpeg",.6);$("pv").src=photo;$("pv").className="";v.className="hide";camStop();$("cb").textContent="Retake photo";$("cb").onclick=camStart;$("err").textContent=""}
+let adding=0;
+async function add(){if(blocked()||adding)return;if(!isA()&&myMark()){alert(MARKED);return form()}const v=id=>$(id).value,s=v("s"),er=m=>$("err").textContent=m,p=s=="Present";
+if(!v("o")||!v("e")||!s)return er("Please fill all required fields");
+if(s=="OSD"&&!v("od").trim())return er("Enter Outside Duty location");
+if(!ed&&p){if(!pos)return er("Location not captured yet");if(pos.ac>MAXACC)return er("GPS accuracy is "+pos.ac+" m. Wait for a better signal (needs "+MAXACC+" m or less)");if(!photo)return er("Capture a live photo with the front camera")}
+let rf="",rt="",ds=[D(new Date())];
+if(!ed&&!p){const a=v("fd"),b=v("td"),t0=iso(new Date());
+if(srvOld())return er("The server is an old version - From / To dates would not be saved. Redeploy Code.gs (New version) and check URL0.");
+if(!a||!b)return er("Select From date and To date from the calendar");
+if(b<a)return er("To date cannot be before From date");
+if(!isA()&&a<t0)return er("From date cannot be in the past");
+ds=span(a,b);if(!ds)return er("Maximum 90 days at a time (or date not valid)");
+rf=ds[0];rt=ds[ds.length-1]}
+if(!ed&&!isA()&&me.one!==false){adding=1;
+if(navigator.onLine){try{const j=await call({k:"mydays"});if(j.ok){MD=j.list;sv()}}catch(x){}} // fresh list from the server when online
+adding=0;const c=clash(ds);if(c)return er("Attendance is already marked on "+c.d+" ("+c.s+"). You cannot mark again for the same date. Choose other dates.")}
+const hit=isA()&&me.one!==false&&!ed&&ds.find(x=>has(v("e"),x));
+if(hit)return er("Attendance is already marked for "+v("e")+(hit==D(new Date())?" today":" on "+hit)+". Open View Attendance to edit it.");
+if(rf&&!confirm(s+": "+rf+(rf!=rt?" to "+rt:"")+" ("+ds.length+" day"+(ds.length>1?"s":"")+").\nEvery one of these days will be recorded as "+s+". Save?"))return;
+const o={o:v("o"),e:v("e"),s,od:s=="OSD"?v("od").trim().toUpperCase():""};
+if(ed){Object.assign(ed,o,{d:v("d"),t:v("t"),sy:0});if(!p){ed.la="";ed.lo="";ed.photo="";ed.pu=""}ed=null;sv();sync(1);show(back);return alert("Updated")}
+stopGps();camStop();const n=new Date();R.unshift({id:Date.now(),d:D(n),t:T(n),dv:DV(),...o,rf,rt,rng:rf?1:0,la:p?pos.la:"",lo:p?pos.lo:"",ac:p?pos.ac:"",off:navigator.onLine?0:1,photo:p?photo:"",sy:0});
+if(!isA()){ds.forEach(x=>{if(!MD.some(z=>z.d==x))MD.push({d:x,s:o.s,t:T(n),rf,rt})});if(ds.includes(D(n)))TM={b:me.b,d:D(n),s:o.s,t:T(n),rf,rt}}sv();sync(1);form();alert(rf&&rf!=rt?s+" saved for "+ds.length+" days: "+rf+" to "+rt:"Attendance saved")}
+
+// ---------- view / edit / delete (admin) ----------
+const offSel=fn=>`<select id=fo onchange="${fn}"><option value="">All offices</option>${opt(offNames())}</select>`;
+const flagSel=f=>`<label class=sm style="margin:8px 0 0"><input type=checkbox id=fl style="width:auto" onchange=${f}> Flagged only (&#9888; time / location / accuracy issues)</label>`;
+const flt=()=>{const d=$("f").value.split("-").reverse().join("/"),o=$("fo").value,g=$("fl").checked;return r=>(!$("f").value||r.d==d)&&(!o||r.o==o)&&(!g||r.f)};
+const flt0=()=>{const o=$("fo").value,g=$("fl").checked;return r=>(!o||r.o==o)&&(!g||r.f)};
+function list(){const td=iso(new Date());$("m").innerHTML=`<div class=row><input type=date id=f onchange=rows()>${offSel("rows()")}</div>${flagSel("rows()")}
+<div style="border:1px solid #DCE3EA;border-radius:12px;background:#fff;padding:12px;margin-top:10px"><b style="font-size:13px">Export attendance to Excel</b>
+<div class=row><div><label class=sm>From date</label><input type=date id=xf value="${td.slice(0,8)}01"></div><div><label class=sm>To date</label><input type=date id=xt value="${td}"></div></div>
+<p class=sm style="margin:6px 0 0">Uses the office and "Flagged only" choices above. All offices if "All offices" is selected.</p><p class=msg id=xe></p><button onclick=xl() style="margin-top:6px">Export Excel</button></div>
+<div style="border:1px solid #DCE3EA;border-radius:12px;background:#fff;padding:12px;margin-top:10px"><b style="font-size:13px">Employees who did NOT mark attendance</b>
+<div class=row><div><label class=sm>From date</label><input type=date id=nf value="${td}"></div><div><label class=sm>To date</label><input type=date id=nt value="${td}"></div></div>
+<p class=sm style="margin:6px 0 0">Lists every employee with no record (Present, Leave, OSD, Rest or Medical) on each selected date. Uses the office choice above. Tap Sync first so the list is up to date.</p><p class=msg id=ne></p><button onclick=nmk() style="margin-top:6px">Export "Not marked" list</button></div>
+<table id=tb></table>`;rows()}
+function nmk(){const e=$("ne"),f=$("nf").value,t=$("nt").value,o=$("fo").value;e.textContent="";
+if(!f||!t)return e.textContent="Select both From date and To date";if(f>t)return e.textContent="From date cannot be after To date";
+const ds=span(f,t);if(!ds)return e.textContent="Maximum 90 days at a time";
+const S=SF.filter(z=>!o||z.o==o).sort((a,b)=>a.o==b.o?(a.n<b.n?-1:1):(a.o<b.o?-1:1));
+if(!S.length)return e.textContent="Staff list not loaded - tap Sync and try again";
+const W=[["Sr.","Date","Saanjh Kendra","Employee","Belt number","Status"]];let k=0;
+ds.forEach(x=>S.forEach(z=>{if(!has(z.n,x)){k++;W.push([k,x,z.o,z.n,String(z.b),"Not marked"])}}));
+if(!k)return e.textContent="Everyone has marked attendance for the selected date(s)";
+const dm=x=>x.split("-").reverse().join("");
+saveF("NotMarked_"+dm(f)+(f!=t?"_to_"+dm(t):"")+".xlsx",xlsx(W,[6,12,22,40,12,12],"Not marked"));e.textContent=k+" entr"+(k>1?"ies":"y")+" exported (employee + date with no attendance)"}
+function rows(){$("tb").innerHTML="<tr><th>Date</th><th>Time</th><th>Office</th><th>Employee</th><th>Status</th></tr>"+R.filter(flt()).map(r=>`<tr onclick="det(${r.id})"><td>${esc(r.d)}</td><td>${esc(r.t)}</td><td>${esc(r.o)}</td><td>${esc(r.e)}</td><td>${stc(r.s)}${r.f?" &#9888;":""}${r.sy?"":" &#9203;"}</td></tr>`).join("")}
+function det(id){const r=R.find(x=>x.id==id);if(!r)return show(1);
+$("m").innerHTML=`<a href="#" onclick="show(1);return false">&larr; Back</a>${r.photo?`<img src="${r.photo}">`:r.pu?`<div id=ph class=sm></div>`:""}<p><small>Date</small><br>${esc(r.d)}</p><p><small>Time</small><br>${esc(r.t)}</p><p><small>Saanjh Kendra Name</small><br>${esc(r.o)}</p><p><small>Employee Name</small><br>${esc(r.e)}</p><p><small>Status</small><br>${esc(r.s)}</p>${r.rf?`<p><small>Period (From - To)</small><br>${esc(r.rf)} to ${esc(r.rt)}</p>`:""}${r.od?`<p><small>Outside Duty at</small><br>${esc(r.od)}</p>`:""}${r.f?`<p style="background:#fff3cd;padding:8px;border-radius:4px"><b>&#9888; Check this record</b><br>${esc(r.f).split(" | ").join("<br>")}</p>`:""}${r.srv?`<p><small>Received by server</small><br>${esc(r.srv)}</p>`:""}${r.m!==""&&r.m!=null&&r.la?`<p><small>Distance from office</small><br>${esc(r.m)} m</p>`:""}${r.la?`<p><small>Location</small><br><a href="https://maps.google.com/?q=${esc(r.la)},${esc(r.lo)}" target=_blank>${esc(r.la)}, ${esc(r.lo)} - open map</a></p>`:""}<button onclick="edit(${r.id},1)">Edit</button><button class=r onclick="del(${r.id},1)">Delete</button>`;if(!r.photo&&r.pu)phoLoad(r)}
+// the photo is read from Drive by the server (as the script owner) and shown inside the app, so no Google sign-in / Drive sharing is needed
+const PH={};
+async function phoLoad(r){const e=$("ph");if(!e)return;if(PH[r.id]){e.innerHTML=`<img src="${PH[r.id]}">`;return}e.textContent="Loading photo...";
+try{const j=await call({k:"photo",id:r.id});if($("ph")!==e)return;if(j.err)return j.err=="auth"?kick():e.innerHTML=`<p class=msg>${esc(j.err)}</p>${/^https?:/.test(r.pu)?`<a href="${esc(r.pu)}" target=_blank>Open in Google Drive</a>`:""}`;
+const ks=Object.keys(PH);if(ks.length>20)delete PH[ks[0]];PH[r.id]=j.img;e.innerHTML=`<img src="${j.img}">`}catch(x){if($("ph")===e)e.textContent="Photo needs internet connection"}}
+function edit(id,from){back=from;form(R.find(x=>x.id==id))}
+function del(id,from){if(!isA()||!confirm("Delete this record?"))return;R=R.filter(x=>x.id!=id);DQ.push(id);sv();sync(1);show(from)}
+
+// ---------- Location view (map) ----------
+function mapv(){map=null;$("m").innerHTML=`<div class=row><input type=date id=f onchange=pins(1)>${offSel("pins(1)")}</div>${flagSel("pins(1)")}<p class=sm id=mc></p><div id=mp style="height:64vh"></div>`;$("f").value=iso(new Date());pins(1)}
+let mlay=null;
+function pins(fit){const el=$("mp");if(!el)return;if(typeof L=="undefined")return el.textContent="Map needs internet connection";
+if(!map){map=L.map(el);L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"&copy; OpenStreetMap"}).addTo(map);mlay=L.layerGroup().addTo(map);fit=1}
+mlay.clearLayers();
+OFFS.filter(o=>o.la!=null).forEach(o=>L.circle([o.la,o.lo],{radius:o.r,color:"#087E8B",weight:1,fillOpacity:.08,interactive:false}).addTo(mlay));
+const P=R.filter(r=>r.la&&flt()(r));$("mc").textContent=P.length+" location(s) shown. Orange circles = allowed office areas.";
+P.forEach(r=>L.marker([r.la,r.lo]).addTo(mlay).bindPopup(`<div class=pp>${esc(r.e)}<br>${esc(r.o)}<br>${esc(r.d)} ${esc(r.t)}<br>${esc(r.s)}${r.m!==""&&r.m!=null?`<br>${esc(r.m)} m from office`:""}${r.f?`<br><b style="color:#c62828">&#9888; ${esc(r.f)}</b>`:""}<div class=row><button onclick="edit(${r.id},2)">Edit</button><button class=r onclick="del(${r.id},2)">Delete</button></div></div>`));
+if(fit)P.length?map.fitBounds(P.map(r=>[r.la,r.lo]),{padding:[30,30],maxZoom:17}):map.setView([31.63,74.87],11)}
+// ---------- Offices: admin taps the map to set each office's allowed area ----------
+let sel=null,omk=null,oci=null;
+function offv(){omap=null;omk=oci=null;sel=null;
+$("m").innerHTML=`<label>Saanjh Kendra</label><select id=oo onchange=ofsel()>${opt(offNames())}</select><p class=sm id=os></p><div id=om style="height:48vh"></div>
+<label>Allowed distance from office (metres)</label><input id=rad type=number min=20 max=5000 value=200 oninput=ofdraw()>
+<div class=row><button onclick=ofme()>Use my current location</button><button onclick=ofsave()>Save office location</button></div><p class=msg id=err></p>
+<table>${offNames().map((o,i)=>{const x=OFFS.find(z=>z.o==o);return`<tr onclick="osel(${i})"><td>${esc(o)}</td><td>${x&&x.la!=null?"&#10004; set ("+x.r+" m)":"<b style=color:#c62828>not set</b>"}</td><td><a href="#" onclick="event.stopPropagation();odel(${i});return false">Delete</a></td></tr>`}).join("")}</table>
+<h4>Add Saanjh Kendra</h4><label>Name of new Saanjh Kendra</label><input id=on maxlength=60 placeholder="e.g. PSSK Sultanwind"><p class=msg id=err2></p><button onclick=oadd()>Add Saanjh Kendra</button>`;
+if(typeof L=="undefined"){ofsel();return $("om").textContent="Map needs internet connection"}
+omap=L.map("om");L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"&copy; OpenStreetMap"}).addTo(omap);
+omap.on("click",e=>{sel={la:e.latlng.lat,lo:e.latlng.lng};ofdraw()});ofsel()}
+function ofsel(){const o=$("oo").value,x0=OFFS.find(z=>z.o==o),x=x0&&x0.la!=null?x0:null;sel=x?{la:x.la,lo:x.lo}:null;$("rad").value=x0?x0.r:200;
+$("os").textContent=x?"Saved location shown. Tap the map to move it.":"Not set yet. Tap the map where this office is, or use your current location.";
+if(!omap)return;ofdraw();x?omap.setView([x.la,x.lo],17):omap.setView([31.63,74.87],12)}
+function osel(i){$("oo").value=offNames()[i];ofsel();window.scrollTo(0,0)}
+async function oadd(){const n=$("on").value.replace(/\s+/g," ").trim(),e=$("err2");if(!n)return e.textContent="Enter the Saanjh Kendra name";
+try{const j=await call({k:"oadd",o:n});if(j.err)return j.err=="auth"?kick():e.textContent=j.err;OFFS=j.list;sv();offv();$("oo").value=n;ofsel();alert("Saanjh Kendra added. Now tap the map to set its location and save.")}catch(x){e.textContent="Needs internet connection"}}
+async function odel(i){const n=offNames()[i];if(!confirm('Delete Saanjh Kendra "'+n+'"? Old attendance records are kept.'))return;
+try{const j=await call({k:"odel",o:n});if(j.err)return j.err=="auth"?kick():alert(j.err);OFFS=j.list;sv();offv()}catch(x){alert("Needs internet connection")}}
+function ofdraw(){if(!omap)return;if(omk)omk.remove();if(oci)oci.remove();omk=oci=null;if(!sel)return;
+omk=L.marker([sel.la,sel.lo]).addTo(omap);oci=L.circle([sel.la,sel.lo],{radius:Number($("rad").value)||200,color:"#087E8B",weight:1,fillOpacity:.15,interactive:false}).addTo(omap)}
+function ofme(){navigator.geolocation.getCurrentPosition(p=>{sel={la:p.coords.latitude,lo:p.coords.longitude};ofdraw();if(omap)omap.setView([sel.la,sel.lo],17)},()=>$("err").textContent="Allow location access first",{enableHighAccuracy:true,timeout:20000})}
+async function ofsave(){const r=Number($("rad").value);if(!sel)return $("err").textContent="Tap the map to choose the office location first";
+if(!(r>=20&&r<=5000))return $("err").textContent="Distance must be 20 to 5000 metres";$("err").textContent="";
+try{const j=await call({k:"soff",o:$("oo").value,la:sel.la,lo:sel.lo,r});if(j.err)return j.err=="auth"?kick():$("err").textContent=j.err;
+OFFS=j.list;sv();const o=$("oo").value;offv();$("oo").value=o;ofsel();alert("Office location saved")}catch(e){$("err").textContent="Needs internet connection"}}
+
+// ---------- staff (admin) ----------
+let sq="",sfo="",sn=50;
+const SM=()=>!!(me&&me.m);
+function staffv(){$("m").innerHTML=`<div class=row><input id=sl type=search placeholder="Search name, belt number or office" value="${esc(sq)}" oninput="sq=this.value;sn=50;srows()"><select id=sfo onchange="sfo=this.value;sn=50;srows()"><option value="">All offices</option>${opt(offNames())}</select></div><p class=sm id=sc></p><table id=st></table><button id=smore class=hide onclick="sn+=50;srows()" style="background:#344054">Show more</button>
+<h4>Add employee</h4><label>Name with rank (e.g. CT AMAN SINGH 1234/ASR)</label><input id=sn><label>Belt number</label><input id=sb inputmode=numeric><label>Saanjh Kendra</label><select id=so>${opt(offNames())}</select><label><input type=checkbox id=sa style="width:auto"> Admin</label><p class=msg id=err></p><button onclick=sadd()>Add employee</button><button onclick=logv() style="background:#344054">Security log (blocked attempts)</button>${SM()?'<h4>Master admin tools</h4><button onclick=alog()>View Log (login / logout and all changes)</button><button onclick=ren() style="background:#344054">Change app name</button><button onclick=retv() style="background:#344054">Storage clean-up (auto-delete old photos / logs)</button>':""}`;
+$("sfo").value=sfo;srows()}
+// one table row; the master admin's row is protected - only the master can change it and nobody can delete him or remove his admin rights
+const srow=s=>{const M=!!s.m,b=esc(s.b),lk=(f,t)=>`<a href="#" onclick="${f};return false">${t}</a>`;
+let a;if(M&&!SM())a="<small>Protected<br>(master admin)</small>";
+else a=lk(`sedt('${b}')`,"Edit")+" | "+lk(`srst('${b}')`,"Reset pw")+" | "+lk(`strf('${b}')`,"Transfer")+(M?"":"<br>"+lk(`sadm('${b}',${!s.a})`,s.a?"Remove admin":"Make admin")+" | "+lk(`sdel('${b}')`,"Delete"));
+return`<tr><td>${esc(s.n)}<br><small>${esc(s.o)} | ${b}${M?" | MASTER ADMIN":s.a?" | Admin":""}</small></td><td>${a}</td></tr>`};
+function srows(){if(!$("st"))return;
+const q=sq.toLowerCase().split(/\s+/).filter(Boolean),L=SF.filter(s=>(!sfo||s.o==sfo)&&q.every(w=>(s.n+" "+s.b+" "+s.o).toLowerCase().includes(w))),sh=L.slice(0,sn);
+$("sc").textContent=(q.length||sfo?L.length+" of "+SF.length+" employees match. ":SF.length+" employees. ")+"Default password = belt number.";
+$("st").innerHTML=sh.map(srow).join("")||"<tr><td>No employee found</td></tr>";
+$("smore").className=L.length>sh.length?"":"hide";$("smore").textContent="Show more ("+(L.length-sh.length)+" more)"}
+// ---- transfer an employee to another Saanjh Kendra ----
+function strf(b){const s=SF.find(x=>x.b==b);if(!s)return;
+$("m").innerHTML=`<a href="#" onclick="show(3);return false">&larr; Back</a><h4>Transfer employee</h4><p><b>${esc(s.n)}</b><br><small>Belt ${esc(s.b)} | now in ${esc(s.o)}</small></p><label>Transfer to Saanjh Kendra</label><select id=to><option value="">Select</option>${opt(offNames().filter(o=>o!=s.o))}</select><p class=sm>From now on this employee marks attendance for the new office (its allowed GPS area applies at once). Records already marked stay under the old office. Every transfer is written in the "Transfers" sheet.</p><p class=msg id=err></p><button onclick="strfgo('${esc(s.b)}')">Transfer</button>`}
+async function strfgo(b){const s=SF.find(x=>x.b==b),to=$("to").value,er=m=>$("err").textContent=m;if(!to)return er("Select the new Saanjh Kendra");
+if(!confirm("Transfer "+s.n+"\nfrom "+s.o+"\nto "+to+" ?"))return;
+try{const j=await call({k:"strf",t:b,so:to});if(j.err)return j.err=="auth"?kick():er(j.err);SF=j.list;sv();alert("Transferred to "+to);show(3)}catch(e){er("Needs internet connection")}}
+async function sop(o){try{const j=await call(o);if(j.err)return j.err=="auth"?kick():alert(j.err);SF=j.list;sv();staffv()}catch(e){alert("Needs internet connection")}}
+const sadd=()=>sop({k:"sadd",n:$("sn").value,sb:$("sb").value,so:$("so").value,sa:$("sa").checked});
+const sdel=b=>confirm("Delete "+SF.find(s=>s.b==b).n+"? Old attendance records are kept.")&&sop({k:"sdel",t:b});
+const srst=b=>confirm("Reset password to belt number?")&&sop({k:"srst",t:b});
+const sadm=(b,a)=>sop({k:"sadm",t:b,a});
+function sedt(b){const s=SF.find(x=>x.b==b),n=prompt("Name with rank (to change the office use Transfer)",s.n);if(!n)return;sop({k:"sedt",t:b,n})}
+
+async function logv(){try{const j=await call({k:"blog"});if(j.err)return j.err=="auth"?kick():alert(j.err);
+$("m").innerHTML=`<a href="#" onclick="show(3);return false">&larr; Back</a><h4>Blocked attempts (latest 200)</h4><table><tr><th>Time</th><th>Employee</th><th>Reason</th></tr>${j.list.map(x=>`<tr><td>${esc(x.t)}</td><td>${esc(x.n)}</td><td>${esc(x.w)}</td></tr>`).join("")||"<tr><td colspan=3>None</td></tr>"}</table>`}catch(e){alert("Needs internet connection")}}
+
+// ---------- MASTER ADMIN: activity log + app name ----------
+let LOGR=[];
+const TYN={AUTH:"Login / Logout",RECORD:"Attendance record",STAFF:"Staff",OFFICE:"Office",APP:"App"};
+function alog(){if(!SM())return;stopGps();camStop();const td=iso(new Date());
+$("m").innerHTML=`<a href="#" onclick="show(3);return false">&larr; Back</a><h4>Activity log <small>(master admin only)</small></h4>
+<p class=sm>Login / logout of every user, and every attendance record, staff, office or app-name change made by admins. For one day choose the same date in both fields.</p>
+<div class=row><div><label class=sm>From date</label><input type=date id=lgf value="${td}"></div><div><label class=sm>To date</label><input type=date id=lgt value="${td}"></div></div>
+<div class=row><select id=lgy><option value="">All activity</option><option value="AUTH">Login / Logout only</option><option value="RECORD">Attendance record changes (add / edit / delete)</option><option value="OTHER">Staff / office / app changes</option></select><input id=lgq placeholder="Name or belt number (optional)"></div>
+<p class=msg id=lge></p><div class=row><button onclick=alogGo()>View log</button><button onclick=alogXl() style="background:#344054">Export Excel</button></div><p class=sm id=lgc></p><table id=lgb></table>`}
+async function alogGo(){const e=$("lge"),f=$("lgf").value,t=$("lgt").value;e.textContent="";
+if(!f||!t)return e.textContent="Select both From date and To date";if(f>t)return e.textContent="From date cannot be after To date";
+$("lgc").textContent="Loading...";$("lgb").innerHTML="";
+try{const j=await call({k:"alog",f:f.split("-").reverse().join("/"),t:t.split("-").reverse().join("/"),y:$("lgy").value,q:$("lgq").value.trim()});
+if(j.err){$("lgc").textContent="";return j.err=="auth"?kick():e.textContent=j.err}
+LOGR=j.list;$("lgc").textContent=j.list.length?j.list.length+" entr"+(j.list.length>1?"ies":"y")+" (newest first)"+(j.more?" - only the newest 2000 are shown, narrow the dates":""):"No activity found for the selected date(s)";
+$("lgb").innerHTML=j.list.length?"<tr><th>When</th><th>Who</th><th>What</th></tr>"+j.list.map(x=>`<tr><td>${esc(x.d)}<br>${esc(x.t)}</td><td>${esc(x.n)}<br><small>${esc(x.b)} | ${esc(x.r)}</small></td><td><b>${esc(x.a)}</b>${x.x?"<br>"+esc(x.x):""}</td></tr>`).join(""):""}
+catch(x){$("lgc").textContent="";e.textContent="Needs internet connection"}}
+function alogXl(){const e=$("lge");if(!LOGR.length)return e.textContent="Tap View log first - there is nothing to export";e.textContent="";
+const W=[["Sr.","Date","Time","Belt","Name","Role","Type","Action","Details"]].concat(LOGR.map((x,i)=>[i+1,x.d,x.t,x.b,x.n,x.r,TYN[x.y]||x.y,x.a,x.x]));
+const dm=v=>v.split("-").reverse().join(""),f=$("lgf").value,t=$("lgt").value;
+saveF("ActivityLog_"+dm(f)+(f!=t?"_to_"+dm(t):"")+".xlsx",xlsx(W,[6,12,12,10,34,14,18,22,80],"Activity log"))}
+// ---------- MASTER ADMIN: storage clean-up (auto-delete old photos and logs) ----------
+const RETS=[[0,"Never delete"],[7,"Delete after 7 days"],[15,"Delete after 15 days"],[21,"Delete after 21 days"],[30,"Delete after one month"]];
+const retO=()=>RETS.map(x=>`<option value="${x[0]}">${x[1]}</option>`).join("");
+const retT=n=>(RETS.find(x=>x[0]==n)||[0,"Never delete"])[1].toLowerCase();
+async function retv(){if(!SM())return;stopGps();camStop();
+$("m").innerHTML=`<a href="#" onclick="show(3);return false">&larr; Back</a><h4>Storage clean-up <small>(master admin only)</small></h4>
+<p class=sm>Old photos and logs take up space on the server (Google Drive / Google Sheet). Choose how long to keep them; older items are then deleted automatically every night (about 3 AM). Attendance records, staff, offices and transfers are never deleted - only the photo of an old record goes, and the record then shows "photo removed".</p>
+<label>Attendance photos (Google Drive)</label><select id=rph>${retO()}</select>
+<label>Logs (Activity log + Security log of blocked attempts)</label><select id=rlg>${retO()}</select>
+<p class=msg id=rme></p><div class=row><button onclick=retSave()>Save</button><button onclick=retRun() style="background:#344054">Delete old items now</button></div><p class=sm id=rmi>Loading current setting...</p>`;
+if(SV!==null&&SV<8.1)$("rme").textContent="The server is older than v8.1 - paste the new Code.gs and deploy a New version first.";
+try{const j=await call({k:"rget"});if(!$("rph"))return;if(j.err)return j.err=="auth"?kick():$("rme").textContent=j.err=="Unknown request"?"The server is older than v8.1 - paste the new Code.gs and deploy a New version first.":j.err;
+$("rph").value=j.ph;$("rlg").value=j.lg;
+$("rmi").innerHTML=(j.ph||j.lg?"Automatic daily clean-up: "+(j.tr?"<b>ON</b>":"<b>timer missing</b> - tap Save again"):"Automatic clean-up is OFF (never delete).")+(j.last?"<br>Last clean-up: "+esc(j.last):"")}
+catch(x){if($("rmi"))$("rmi").textContent="Needs internet connection"}}
+async function retSave(){const e=$("rme"),ph=Number($("rph").value),lg=Number($("rlg").value);e.textContent="";
+if((ph||lg)&&!confirm("Photos: "+retT(ph)+"\nLogs: "+retT(lg)+"\n\nOlder photos and log entries will be deleted from the server every night. Deleted photos cannot be brought back (they stay in Google Drive Trash for up to 30 days at best).\n\nSave?"))return;
+try{const j=await call({k:"rset",ph,lg});if(j.err)return j.err=="auth"?kick():e.textContent=j.err;
+alert("Saved.\nPhotos: "+retT(j.ph)+"\nLogs: "+retT(j.lg)+(j.warn?"\n\n"+j.warn:""));retv()}catch(x){e.textContent="Needs internet connection"}}
+async function retRun(){const e=$("rme"),ph=Number($("rph").value),lg=Number($("rlg").value);e.textContent="";
+if(!ph&&!lg)return e.textContent="Both options are \"Never delete\" - choose days and tap Save first";
+if(!confirm("Delete NOW all photos older than the saved setting and all old log entries?\n(Tap Save first if you just changed the options.)"))return;
+$("rmi").textContent="Deleting... this can take a minute. Please wait.";
+try{const j=await call({k:"rrun"});if(j.err){$("rmi").textContent="";return j.err=="auth"?kick():e.textContent=j.err}
+const o=j.res;alert("Done.\nPhotos deleted: "+o.photos+"\nActivity-log rows deleted: "+o.audit+"\nSecurity-log rows deleted: "+o.blocked+(o.more?"\n\nTime ran out - the rest will be deleted at the next run (tap again or wait for the night run).":"")+(o.err?"\n\n"+o.err+" photo(s) could not be deleted.":""));retv()}
+catch(x){$("rmi").textContent="";e.textContent="No answer from the server (internet?). Tap Delete old items now again to continue."}}
+async function ren(){if(!SM())return;const n=(prompt("New name of the app (3 to 40 characters)",AN)||"").replace(/\s+/g," ").trim();if(!n||n==AN)return;
+if(n.length<3||n.length>40)return alert("The name must be 3 to 40 characters");
+try{const j=await call({k:"aname",n});if(j.err)return j.err=="auth"?kick():alert(j.err);setAN(j.an);alert("App name changed to: "+j.an+"\nEvery user sees it the next time the app connects.")}catch(e){alert("Needs internet connection")}}
+
+// ---------- sync ----------
+function kick(){alert("Login no longer valid (password changed or employee removed). Please login again.");me=null;delete localStorage.sess;login()}
+async function sync(q){if(!me||!U())return;if(busy){again=1;return}busy=1;
+try{for(const id of [...DQ]){const j=await call({k:"del",id});if(j.err=="auth")return kick();if(j.ok){DQ=DQ.filter(x=>x!=id);sv()}}
+for(const r of R.filter(r=>!r.sy)){const j=await call({...r,k:"rec"});if(j.err=="auth")return kick();
+if(j.ok){if(isA()){r.sy=1;r.photo=""}else R=R.filter(z=>z!==r);sv()}else if(j.fatal){R=R.filter(z=>z!==r);if(j.dup&&!isA()&&j.mark&&j.mark.d==D(new Date()))TM={b:me.b,...j.mark};sv();alert(j.err);if($("tb"))rows();if(j.dup&&!isA()&&cur==0)form()}else if(j.err&&!q)alert(j.err)}
+if(!isA()){const was=!!myMark(),t=await call({k:"today"}),md=await call({k:"mydays"});if(md.ok){MD=md.list;sv()}
+let ch=0;if(t.ok&&t.me&&(t.me.o!=me.o||t.me.n!=me.n)){me.o=t.me.o;me.n=t.me.n;ch=1;sv()} // transferred / renamed by admin
+if(t.ok){if(t.marked)TM={b:me.b,...t.mark};else if(!R.some(r=>r.e==me.n&&r.d==D(new Date())))TM=null;sv();if(cur==0&&(ch||!!myMark()!=was))form()}else if(md.ok&&cur==0&&!!myMark()!=was)form()}
+if(isA()){const s=await call({k:"staff"});if(s.ok){SF=s.list;const m0=SF.find(z=>z.b==me.b);if(m0){me.o=m0.o;me.n=m0.n;me.m=!!m0.m;$("lg").className=SM()?"":"hide";setAN(AN)}}const oj=await call({k:"offs"});if(oj.ok)OFFS=oj.list;const j=await call({k:"recs"});
+if(j.ok){const pend=R.filter(r=>!r.sy),ids=new Set(pend.map(r=>r.id));
+R=[...pend,...j.list.map(x=>({...x,id:Number(x.id),sy:1})).filter(x=>!ids.has(x.id)&&!DQ.some(d=>d==x.id))].sort((a,b)=>b.id-a.id)}}
+sv();if($("tb"))rows();if($("mp"))pins();if(cur==3&&$("st"))srows()}
+catch(e){if(!q)alert("Could not sync - check internet. Records are saved on this phone.")}finally{busy=0;if(again){again=0;sync(1)}}}
+// ---- xlsx (no library needed: builds a real .xlsx file) ----
+const crcT=(()=>{const t=[];for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+const crc=b=>{let c=-1;for(let i=0;i<b.length;i++)c=crcT[(c^b[i])&255]^(c>>>8);return(c^-1)>>>0};
+function zipB(files){const E=new TextEncoder(),u16=v=>[v&255,v>>8&255],u32=v=>[v&255,v>>8&255,v>>16&255,v>>>24&255],P=[],C=[];let off=0;
+for(const[n,s]of files){const nb=E.encode(n),d=E.encode(s),c=crc(d),m=[...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0x21),...u32(c),...u32(d.length),...u32(d.length),...u16(nb.length),...u16(0)];
+P.push(new Uint8Array([0x50,0x4b,3,4,...m]),nb,d);
+C.push(new Uint8Array([0x50,0x4b,1,2,...u16(20),...m,...u16(0),...u16(0),...u16(0),...u32(0),...u32(off)]),nb);off+=30+nb.length+d.length}
+const cs=C.reduce((a,x)=>a+x.length,0);
+return new Blob([...P,...C,new Uint8Array([0x50,0x4b,5,6,0,0,0,0,...u16(files.length),...u16(files.length),...u32(cs),...u32(off),0,0])],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})}
+const xe=v=>String(v).replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g,"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])),
+cl=i=>{let s="";for(i++;i;i=Math.floor((i-1)/26))s=String.fromCharCode(65+(i-1)%26)+s;return s};
+function xlsx(rows,widths,name){const N="http://schemas.openxmlformats.org/",X='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+const sd=rows.map((r,ri)=>`<row r="${ri+1}">`+r.map((v,ci)=>{const a=cl(ci)+(ri+1);return typeof v=="number"?`<c r="${a}"><v>${v}</v></c>`:`<c r="${a}" t="inlineStr"${ri?"":' s="1"'}><is><t xml:space="preserve">${xe(v==null?"":v)}</t></is></c>`}).join("")+"</row>").join("");
+return zipB([["[Content_Types].xml",X+`<Types xmlns="${N}package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`],
+["_rels/.rels",X+`<Relationships xmlns="${N}package/2006/relationships"><Relationship Id="rId1" Type="${N}officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`],
+["xl/workbook.xml",X+`<workbook xmlns="${N}spreadsheetml/2006/main" xmlns:r="${N}officeDocument/2006/relationships"><sheets><sheet name="${xe(name)}" sheetId="1" r:id="rId1"/></sheets></workbook>`],
+["xl/_rels/workbook.xml.rels",X+`<Relationships xmlns="${N}package/2006/relationships"><Relationship Id="rId1" Type="${N}officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="${N}officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`],
+["xl/styles.xml",X+`<styleSheet xmlns="${N}spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`],
+["xl/worksheets/sheet1.xml",X+`<worksheet xmlns="${N}spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>${widths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join("")}</cols><sheetData>${sd}</sheetData></worksheet>`]])}
+// save a file: inside the Android app it goes to the Downloads folder; in a browser it downloads normally
+async function saveF(name,blob){if(window.Android&&Android.saveFile){const b=await new Promise(ok=>{const f=new FileReader();f.onload=()=>ok(f.result.split(",")[1]);f.readAsDataURL(blob)});
+const r=String(Android.saveFile(name,b,blob.type||"application/octet-stream"));alert(r.slice(0,3)=="OK:"?"Saved in "+r.slice(3):"Could not save file: "+r.slice(4));return}
+const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click()}
+// ---- export "View Attendance" to Excel for a From / To date range ----
+const blk=r=>{const set=new Set(R.filter(z=>z.e==r.e&&z.s==r.s&&/^\d\d\/\d\d\/\d{4}$/.test(z.d)).map(z=>dn(z.d)));let a=dn(r.d),b=a;while(set.has(a-864e5))a-=864e5;while(set.has(b+864e5))b+=864e5;return[fdm(a),fdm(b)]};
+const per=(r,k)=>{if(r.s=="Present")return"";if(r[k])return r[k];if(!/^\d\d\/\d\d\/\d{4}$/.test(r.d||""))return r.d||"";const b=blk(r);return k=="rf"?b[0]:b[1]}; // saved period; if missing, the consecutive days of the same employee + status
+function xl(){const e=$("xe"),f=$("xf").value,t=$("xt").value;e.textContent="";
+if(!f||!t)return e.textContent="Select both From date and To date";if(f>t)return e.textContent="From date cannot be after To date";
+const a=f.replace(/-/g,""),b=t.replace(/-/g,""),g=flt0(),L=R.filter(r=>{const k=n8(r.d);return k>=a&&k<=b&&g(r)}).sort((x,y)=>n8(x.d)==n8(y.d)?x.id-y.id:n8(x.d)<n8(y.d)?-1:1);
+if(!L.length)return e.textContent="No attendance records between these dates";
+const K=["d","t","o","e","s","od","la","lo","m","f","rf","rt"],n=v=>v!==""&&v!=null&&!isNaN(v)?Number(v):"",
+rows=[["Sr.","Date","Time","Saanjh Kendra","Employee","Status","Outside Duty at","Latitude","Longitude","Distance from office (m)","Flag","Period From","Period To"]].concat(L.map((r,i)=>[i+1,...K.map(k=>["la","lo","m"].includes(k)?n(r[k]):k=="rf"||k=="rt"?per(r,k):r[k]==null?"":r[k])])),
+dm=x=>x.split("-").reverse().join("");
+saveF("Attendance_"+dm(f)+"_to_"+dm(t)+".xlsx",xlsx(rows,[6,12,12,22,34,10,18,11,11,14,40,12,12],"Attendance"));e.textContent=L.length+" record(s) exported"}
+// ---- end xlsx ----
+function csv(){const h=["d","t","o","e","s","od","la","lo","m","f","rf","rt"],q=v=>'"'+String(v||"").replace(/"/g,'""')+'"',x=[["Date","Time","Saanjh Kendra","Employee","Status","Outside Duty at","Lat","Lng","Distance from office (m)","Flag","Period From","Period To"].join(",")].concat(R.map(r=>h.map(k=>q(k=="rf"||k=="rt"?per(r,k):r[k])).join(",")));
+saveF("attendance.csv",new Blob([x.join("\n")],{type:"text/csv"}))}
+addEventListener("online",()=>{lqf();sync(1)});setInterval(()=>{if(!document.hidden&&me&&navigator.onLine)sync(1);if(me&&!isA()&&cur==0&&!!myMark()!=!!$("mk"))form()},60000);document.addEventListener("visibilitychange",()=>{if(!document.hidden&&me)blocked()});setAN(AN);me&&me.b?app():login();lqf();
+</script></body></html>
