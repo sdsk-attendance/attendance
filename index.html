@@ -27,7 +27,7 @@ img{max-width:100%;border-radius:12px;margin-top:8px}.hide{display:none}.msg{col
 <header><span id=an onclick="ren()">Attendance SDSK-Central</span><span id=hl class=hide><a id=lg class=hide href="#" onclick="alog();return false">View Log</a><a href="#" onclick="sync();return false">Sync</a><a id=cv href="#" onclick="csv();return false">CSV</a><a href="#" onclick="pw();return false">Password</a><a href="#" onclick="out();return false">Logout</a></span><small id=who></small></header>
 <main id="m"></main><nav id="nv" class=hide></nav>
 <script>
-const URL0="https://script.google.com/macros/s/AKfycbzb98WKjkeapiZOthBHz5ggppTHEKnUykaQB7M0YEspSpy90473-Bgq1OFj3tui-vYvKg/exec"; // paste your Google Apps Script web app URL here once, so staff never have to
+const URL0="https://script.google.com/macros/s/AKfycbxUVQ0heKMvnz2JfdgLxM4fXl-59dAes6toZI_hJbYx10UvcP_MsqrSf8IF2x59xaaTcQ/exec"; // paste your Google Apps Script web app URL here once, so staff never have to
 const DEFOFF=["SDSK-Central","PSSK D-Division","PSSK E-Division","PSSK Gate Hakima","PSSK Islamabad"]; // used only until the list loads from the server
 const offNames=()=>OFFS.length?OFFS.map(x=>x.o):DEFOFF;
 const ST=["Present","Leave","OSD","Rest","Medical"];
@@ -57,7 +57,7 @@ const u=uaShort(),c=navigator.connection||{},ua=navigator.userAgent||"",pl=/iPho
 const dflds=i=>{const b=Number(i.bat),ss=String(i.ssid||"").replace(/^"|"$/g,""),bs=i.bssid=="02:00:00:00:00:00"?"":(i.bssid||"");return{src:i.src,did:i.id,dm:((i.brand||"")+" "+(i.model||"")).trim(),os:i.os||"",bat:i.bat===""||i.bat==null||isNaN(b)?"":b+"%"+(i.chg?" charging":""),net:i.net||"",wf:ss&&ss!="<unknown ssid>"?ss+(bs?" ("+bs+")":""):bs,av:i.av||""}};
 function blocked(){if(!devBad())return false;camStop();stopGps();$("hl").className="hide";$("nv").className="hide";$("who").textContent="";
 const rs=devWhy().filter(k=>k!="web");$("m").innerHTML='<h3>Security check failed</h3>'+(rs.length?"<p>Please fix:</p><ul>"+rs.map(k=>"<li>"+esc(WHY[k])+"</li>").join("")+"</ul>":"")+'<p>This app works only on phones that are <b>not rooted</b>, have <b>Developer options turned off</b>, <b>Automatic date &amp; time ON</b> and no fake-location app running.</p>'+(window.Android?"":"<p>Please open the official Attendance app.</p>")+'<button onclick="location.reload()">Check again</button>';return true}
-const APPV=8.8,NEEDV=8.8;let SV=null,warned=0; // APPV = this app, NEEDV = oldest server (Code.gs) version this app can work with
+const APPV=9.0,NEEDV=9.0;let SV=null,warned=0; // APPV = this app, NEEDV = oldest server (Code.gs) version this app can work with
 const srvOld=()=>SV!==null&&SV<NEEDV;
 const MAXACC=150; // GPS accuracy (metres) needed before "Present" can be saved
 const U=()=>URL0||localStorage.url||"",isA=()=>!!(me&&me.a);
@@ -108,13 +108,14 @@ function show(n){cur=n;stopGps();camStop();[...$("nv").children].forEach((c,i)=>
 function emps(){$("e").innerHTML='<option value="">Select</option>'+opt(SF.filter(s=>s.o==$("o").value).map(s=>s.n))}
 
 // ---------- mark attendance ----------
-function form(r){camStop();if(!isA()){const m=myMark();if(m)return markedv(m)}ed=isA()&&r||null;photo="";pos=null;const a=isA(),x=ed||{};
+function form(r){camStop();if(!isA()){const m=myMark();if(m)return markedv(m)}ed=isA()&&r||null;photo="";DOC="";pos=null;const a=isA(),x=ed||{};
 $("m").innerHTML=`<label>Date <b>*</b></label><input id=d ${ed?"":"readonly"} value="${esc(x.d)}"><label>Time <b>*</b></label><input id=t ${ed?"":"readonly"} value="${esc(x.t)}">
 <label>Saanjh Kendra Name <b>*</b></label>${a?`<select id=o onchange=emps()><option value="">Select</option>${opt(offNames())}</select>`:`<input id=o readonly value="${esc(me.o)}">`}
 <label>Employee Name <b>*</b></label>${a?`<select id=e><option value="">Select</option></select>`:`<input id=e readonly value="${esc(me.n)}">`}
 <label>Status <b>*</b></label><select id=s onchange=stat()><option value="">Select</option>${opt(ST)}</select>
 <div id=rg class=hide><div class=row><div><label>From date <b>*</b></label><input type=date id=fd onchange=rgc() oninput=rgc()></div><div><label>To date <b>*</b></label><input type=date id=td onchange=rgc() oninput=rgc()></div></div><p class=sm id=rgn></p></div>
 <div id=osd class=hide><label>Outside Duty at <b>*</b></label><input id=od value="${esc(x.od)}" autocapitalize="characters" style="text-transform:uppercase" oninput="var a=this.selectionStart,b=this.selectionEnd;this.value=this.value.toUpperCase();try{this.setSelectionRange(a,b)}catch(e){}"></div>
+<div id=dc class=hide><label id=dcl></label><input type=file id=dcf accept="image/*,application/pdf" onchange=dcPick()><p class=sm id=dcn></p></div>
 <div id=pr class=hide><label>Location <b>*</b></label><input id=loc readonly placeholder="Fetching location..."><label>Live photo - front camera <b>*</b></label><video id=cam autoplay playsinline muted class=hide style="width:100%;transform:scaleX(-1);border-radius:12px;background:#000;margin-top:8px"></video><img id=pv class=hide><button type=button id=cb onclick=camStart()>Open front camera</button></div>
 <p class=msg id=err></p><button onclick=add()>${ed?"Update":"Save"}</button>${ed?'<button class=r onclick="show(back)">Cancel</button>':""}`;
 if(a){$("o").value=x.o||me.o;emps();$("e").value=x.e||me.n}
@@ -126,7 +127,7 @@ $("rgn").style.color=c?"#c00":"";
 $("rgn").textContent=c?"Already marked on "+c.d+" ("+c.s+"). Choose dates that are not already marked.":n?n+" day"+(n>1?"s":"")+": "+ds[0]+(n>1?" to "+ds[n-1]:""):a.value&&b.value?"Maximum 90 days at a time":""}
 function stat(){const s=$("s").value;const rg=!!s&&s!="Present"&&!ed;$("rg").className=rg?"":"hide";
 if(rg){const t0=iso(new Date());if(!$("fd").value){$("fd").value=t0;$("td").value=t0}if(!isA())$("fd").min=$("td").min=t0;rgc()}
-$("osd").className=s=="OSD"?"":"hide";$("pr").className=s=="Present"&&!ed?"":"hide";if(s!="Present")camStop();else if(!ed){if(!pos)loc();if(!photo&&!camS)camStart()}}
+$("osd").className=s=="OSD"?"":"hide";const dcs=s=="Leave"||s=="Medical";$("dc").className=dcs?"":"hide";if(dcs)$("dcl").textContent=(s=="Leave"?"Leave Memo":"Medical Certificate")+" - photo or PDF (required)";else{DOC="";$("dcf").value="";$("dcn").textContent=""}$("pr").className=s=="Present"&&!ed?"":"hide";if(s!="Present")camStop();else if(!ed){if(!pos)loc();if(!photo&&!camS)camStart()}}
 const stopGps=()=>{if(wid!=null){navigator.geolocation.clearWatch(wid);wid=null}};
 // keeps improving the fix until it is accurate enough (<= MAXACC metres)
 function loc(){stopGps();wid=navigator.geolocation.watchPosition(p=>{if(!$("loc"))return stopGps();
@@ -146,9 +147,21 @@ function camShot(){const v=$("cam");if(!camS||!v.videoWidth)return $("err").text
 const k=Math.min(1,480/v.videoWidth),c=document.createElement("canvas");c.width=v.videoWidth*k;c.height=v.videoHeight*k;c.getContext("2d").drawImage(v,0,0,c.width,c.height);
 photo=c.toDataURL("image/jpeg",.6);$("pv").src=photo;$("pv").className="";v.className="hide";camStop();$("cb").textContent="Retake photo";$("cb").onclick=camStart;$("err").textContent=""}
 let adding=0;
+let DOC="";
+// Leave memo / Medical certificate: any photo (shrunk to about 1600 px) or a PDF up to 1.5 MB
+async function dcPick(){const f=$("dcf").files[0],n=$("dcn");DOC="";n.style.color="";if(!f){n.textContent="";return}
+const bad=m=>{n.style.color="#c00";n.textContent=m;$("dcf").value=""};
+if(f.type=="application/pdf"||/\.pdf$/i.test(f.name)){if(f.size>1500000)return bad("PDF is too large (maximum 1.5 MB). Please upload a smaller PDF or a photo.");
+const d=await new Promise(ok=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=()=>ok("");r.readAsDataURL(f)});
+if(!d)return bad("File could not be read");DOC=d.replace(/^data:[^;]*;/,"data:application/pdf;");n.textContent="Ready: "+f.name+" ("+Math.round(f.size/1024)+" KB)";return}
+if(!/^image\//.test(f.type))return bad("Only a photo or a PDF can be uploaded");
+try{const u=URL.createObjectURL(f),im=await new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=u}),k=Math.min(1,1600/Math.max(im.width,im.height)),c=document.createElement("canvas");
+c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const g=c.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,c.width,c.height);g.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);
+DOC=c.toDataURL("image/jpeg",.75);n.textContent="Ready: "+f.name}catch(e){bad("This photo could not be read. Try another photo or a PDF.")}}
 async function add(){if(blocked()||adding)return;if(!isA()&&myMark()){alert(MARKED);return form()}const v=id=>$(id).value,s=v("s"),er=m=>$("err").textContent=m,p=s=="Present";
 if(!v("o")||!v("e")||!s)return er("Please fill all required fields");
 if(s=="OSD"&&!v("od").trim())return er("Enter Outside Duty location");
+if((s=="Leave"||s=="Medical")&&!DOC&&(!ed||ed.s!=s))return er("Upload the "+(s=="Leave"?"Leave Memo":"Medical Certificate")+" (photo or PDF) first");
 if(!ed&&p){if(!pos)return er("Location not captured yet");if(pos.ac>MAXACC)return er("GPS accuracy is "+pos.ac+" m. Wait for a better signal (needs "+MAXACC+" m or less)");if(!photo)return er("Capture a live photo with the front camera")}
 let rf="",rt="",ds=[D(new Date())];
 if(!ed&&!p){const a=v("fd"),b=v("td"),t0=iso(new Date());
@@ -164,7 +177,7 @@ adding=0;const c=clash(ds);if(c)return er("Attendance is already marked on "+c.d
 const hit=isA()&&me.one!==false&&!ed&&ds.find(x=>has(v("e"),x));
 if(hit)return er("Attendance is already marked for "+v("e")+(hit==D(new Date())?" today":" on "+hit)+". Open View Attendance to edit it.");
 if(rf&&!confirm(s+": "+rf+(rf!=rt?" to "+rt:"")+" ("+ds.length+" day"+(ds.length>1?"s":"")+").\nEvery one of these days will be recorded as "+s+". Save?"))return;
-const o={o:v("o"),e:v("e"),s,od:s=="OSD"?v("od").trim().toUpperCase():""};
+const o={o:v("o"),e:v("e"),s,od:s=="OSD"?v("od").trim().toUpperCase():""};if(DOC&&(s=="Leave"||s=="Medical"))o.doc=DOC;
 if(ed){Object.assign(ed,o,{d:v("d"),t:v("t"),sy:0});if(!p){ed.la="";ed.lo="";ed.photo="";ed.pu=""}ed=null;sv();sync(1);show(back);return alert("Updated")}
 stopGps();camStop();const n=new Date();const dii=DI();R.unshift({id:Date.now(),d:D(n),t:T(n),dv:DV(),di:dii,...dflds(dii),...o,rf,rt,rng:rf?1:0,la:p?pos.la:"",lo:p?pos.lo:"",ac:p?pos.ac:"",off:navigator.onLine?0:1,photo:p?photo:"",sy:0});
 if(!isA()){ds.forEach(x=>{if(!MD.some(z=>z.d==x))MD.push({d:x,s:o.s,t:T(n),rf,rt})});if(ds.includes(D(n)))TM={b:me.b,d:D(n),s:o.s,t:T(n),rf,rt}}sv();sync(1);form();alert(rf&&rf!=rt?s+" saved for "+ds.length+" days: "+rf+" to "+rt:"Attendance saved")}
@@ -196,12 +209,14 @@ const dm=x=>x.split("-").reverse().join("");
 saveF("NotMarked_"+dm(f)+(f!=t?"_to_"+dm(t):"")+".xlsx",xlsx(W,[6,12,22,40,12,12],"Not marked"));e.textContent=k+" entr"+(k>1?"ies":"y")+" exported (employee + date with no attendance)"}
 function rows(){$("tb").innerHTML="<tr><th>Date</th><th>Time</th><th>Office</th><th>Employee</th><th>Status</th></tr>"+R.filter(flt()).map(r=>`<tr onclick="det(${r.id})"><td>${esc(r.d)}</td><td>${esc(r.t)}</td><td>${esc(r.o)}</td><td>${esc(r.e)}</td><td>${stc(r.s)}${r.f?" &#9888;":""}${r.sy?"":" &#9203;"}<br>${via(r)}</td></tr>`).join("")}
 function det(id){const r=R.find(x=>x.id==id);if(!r)return show(1);
-$("m").innerHTML=`<a href="#" onclick="show(1);return false">&larr; Back</a>${r.photo?`<img src="${r.photo}">`:r.pu?`<div id=ph class=sm></div>`:""}<p><small>Date</small><br>${esc(r.d)}</p><p><small>Time</small><br>${esc(r.t)}</p><p><small>Saanjh Kendra Name</small><br>${esc(r.o)}</p><p><small>Employee Name</small><br>${esc(r.e)}</p><p><small>Status</small><br>${esc(r.s)}</p>${r.rf?`<p><small>Period (From - To)</small><br>${esc(r.rf)} to ${esc(r.rt)}</p>`:""}${r.od?`<p><small>Outside Duty at</small><br>${esc(r.od)}</p>`:""}${r.f?`<p style="background:#fff3cd;padding:8px;border-radius:4px"><b>&#9888; Check this record</b><br>${esc(r.f).split(" | ").join("<br>")}</p>`:""}${r.srv?`<p><small>Received by server</small><br>${esc(r.srv)}</p>`:""}${r.src?`<p><small>Marked through</small><br><b>${esc(r.src)}</b></p><p><small>Device used</small><br>${esc(r.dm||"-")}${r.os?" | "+esc(r.os):""}${r.bat?"<br>Battery "+esc(r.bat):""}${r.net?" | Network "+esc(r.net):""}${r.wf?"<br>Wi-Fi "+esc(r.wf):""}${r.did?"<br><small>Device ID "+esc(r.did)+"</small>":""}${r.av?"<br><small>App version "+esc(r.av)+"</small>":""}</p>`:`<p><small>Marked through</small><br>Not recorded (marked before this feature)</p>`}${r.m!==""&&r.m!=null&&r.la?`<p><small>Distance from office</small><br>${esc(r.m)} m</p>`:""}${r.la?`<p><small>Location</small><br><a href="https://maps.google.com/?q=${esc(r.la)},${esc(r.lo)}" target=_blank>${esc(r.la)}, ${esc(r.lo)} - open map</a></p>`:""}<button onclick="edit(${r.id},1)">Edit</button><button class=r onclick="del(${r.id},1)">Delete</button>`;if(!r.photo&&r.pu)phoLoad(r)}
+$("m").innerHTML=`<a href="#" onclick="show(1);return false">&larr; Back</a>${r.photo?`<img src="${r.photo}">`:r.pu?`${r.s=="Leave"||r.s=="Medical"?`<p><small>${r.s=="Leave"?"Leave Memo":"Medical Certificate"} (uploaded)</small></p>`:""}<div id=ph class=sm></div>`:""}<p><small>Date</small><br>${esc(r.d)}</p><p><small>Time</small><br>${esc(r.t)}</p><p><small>Saanjh Kendra Name</small><br>${esc(r.o)}</p><p><small>Employee Name</small><br>${esc(r.e)}</p><p><small>Status</small><br>${esc(r.s)}</p>${r.rf?`<p><small>Period (From - To)</small><br>${esc(r.rf)} to ${esc(r.rt)}</p>`:""}${r.od?`<p><small>Outside Duty at</small><br>${esc(r.od)}</p>`:""}${r.f?`<p style="background:#fff3cd;padding:8px;border-radius:4px"><b>&#9888; Check this record</b><br>${esc(r.f).split(" | ").join("<br>")}</p>`:""}${r.srv?`<p><small>Received by server</small><br>${esc(r.srv)}</p>`:""}${r.src?`<p><small>Marked through</small><br><b>${esc(r.src)}</b></p><p><small>Device used</small><br>${esc(r.dm||"-")}${r.os?" | "+esc(r.os):""}${r.bat?"<br>Battery "+esc(r.bat):""}${r.net?" | Network "+esc(r.net):""}${r.wf?"<br>Wi-Fi "+esc(r.wf):""}${r.did?"<br><small>Device ID "+esc(r.did)+"</small>":""}${r.av?"<br><small>App version "+esc(r.av)+"</small>":""}</p>`:`<p><small>Marked through</small><br>Not recorded (marked before this feature)</p>`}${r.m!==""&&r.m!=null&&r.la?`<p><small>Distance from office</small><br>${esc(r.m)} m</p>`:""}${r.la?`<p><small>Location</small><br><a href="https://maps.google.com/?q=${esc(r.la)},${esc(r.lo)}" target=_blank>${esc(r.la)}, ${esc(r.lo)} - open map</a></p>`:""}<button onclick="edit(${r.id},1)">Edit</button><button class=r onclick="del(${r.id},1)">Delete</button>`;if(!r.photo&&r.pu)phoLoad(r)}
 // the photo is read from Drive by the server (as the script owner) and shown inside the app, so no Google sign-in / Drive sharing is needed
 const PH={};
-async function phoLoad(r){const e=$("ph");if(!e)return;if(PH[r.id]){e.innerHTML=`<img src="${PH[r.id]}">`;return}e.textContent="Loading photo...";
+const phH=id=>/^data:application\/pdf/.test(PH[id])?`<p><a href="#" onclick="pdfOpen('${id}');return false" style="font-weight:700">&#128196; Open / save PDF document</a></p>`:`<img src="${PH[id]}">`;
+async function pdfOpen(id){try{saveF("Document_"+id+".pdf",await(await fetch(PH[id])).blob())}catch(e){alert("Could not open the PDF")}}
+async function phoLoad(r){const e=$("ph");if(!e)return;if(PH[r.id]){e.innerHTML=phH(r.id);return}e.textContent="Loading photo...";
 try{const j=await call({k:"photo",id:r.id});if($("ph")!==e)return;if(j.err)return j.err=="auth"?kick():e.innerHTML=`<p class=msg>${esc(j.err)}</p>${/^https?:/.test(r.pu)?`<a href="${esc(r.pu)}" target=_blank>Open in Google Drive</a>`:""}`;
-const ks=Object.keys(PH);if(ks.length>20)delete PH[ks[0]];PH[r.id]=j.img;e.innerHTML=`<img src="${j.img}">`}catch(x){if($("ph")===e)e.textContent="Photo needs internet connection"}}
+const ks=Object.keys(PH);if(ks.length>20)delete PH[ks[0]];PH[r.id]=j.img;e.innerHTML=phH(r.id)}catch(x){if($("ph")===e)e.textContent="Photo needs internet connection"}}
 function edit(id,from){back=from;form(R.find(x=>x.id==id))}
 function del(id,from){if(!isA()||!confirm("Delete this record?"))return;R=R.filter(x=>x.id!=id);DQ.push(id);sv();sync(1);show(from)}
 
@@ -339,8 +354,8 @@ const retO=()=>RETS.map(x=>`<option value="${x[0]}">${x[1]}</option>`).join("");
 const retT=n=>(RETS.find(x=>x[0]==n)||[0,"Never delete"])[1].toLowerCase();
 async function retv(){if(!SM())return;stopGps();camStop();
 $("m").innerHTML=`<a href="#" onclick="show(3);return false">&larr; Back</a><h4>Storage clean-up <small>(master admin only)</small></h4>
-<p class=sm>Old photos and logs take up space on the server (Google Drive / Google Sheet). Choose how long to keep them; older items are then deleted automatically every night (about 3 AM). Attendance records, staff, offices and transfers are never deleted - only the photo of an old record goes, and the record then shows "photo removed".</p>
-<label>Attendance photos (Google Drive)</label><select id=rph>${retO()}</select>
+<p class=sm>Old photos, leave memos / medical certificates and logs take up space on the server (Google Drive / Google Sheet). Choose how long to keep them; older items are then deleted automatically every night (about 3 AM). Attendance records, staff, offices and transfers are never deleted - only the photo of an old record goes, and the record then shows "photo removed".</p>
+<label>Attendance photos, leave memos and medical certificates (Google Drive)</label><select id=rph>${retO()}</select>
 <label>Logs (Activity log + Security log of blocked attempts)</label><select id=rlg>${retO()}</select>
 <p class=msg id=rme></p><div class=row><button onclick=retSave()>Save</button><button onclick=retRun() style="background:#344054">Delete old items now</button></div><p class=sm id=rmi>Loading current setting...</p>`;
 if(SV!==null&&SV<8.1)$("rme").textContent="The server is older than v8.1 - paste the new Code.gs and deploy a New version first.";
@@ -349,15 +364,15 @@ $("rph").value=j.ph;$("rlg").value=j.lg;
 $("rmi").innerHTML=(j.ph||j.lg?"Automatic daily clean-up: "+(j.tr?"<b>ON</b>":"<b>timer missing</b> - tap Save again"):"Automatic clean-up is OFF (never delete).")+(j.last?"<br>Last clean-up: "+esc(j.last):"")}
 catch(x){if($("rmi"))$("rmi").textContent="Needs internet connection"}}
 async function retSave(){const e=$("rme"),ph=Number($("rph").value),lg=Number($("rlg").value);e.textContent="";
-if((ph||lg)&&!confirm("Photos: "+retT(ph)+"\nLogs: "+retT(lg)+"\n\nOlder photos and log entries will be deleted from the server every night. Deleted photos cannot be brought back (they stay in Google Drive Trash for up to 30 days at best).\n\nSave?"))return;
+if((ph||lg)&&!confirm("Photos: "+retT(ph)+"\nLogs: "+retT(lg)+"\n\nOlder photos, leave memos / medical certificates and log entries will be deleted from the server every night. Deleted photos cannot be brought back (they stay in Google Drive Trash for up to 30 days at best).\n\nSave?"))return;
 try{const j=await call({k:"rset",ph,lg});if(j.err)return j.err=="auth"?kick():e.textContent=j.err;
 alert("Saved.\nPhotos: "+retT(j.ph)+"\nLogs: "+retT(j.lg)+(j.warn?"\n\n"+j.warn:""));retv()}catch(x){e.textContent="Needs internet connection"}}
 async function retRun(){const e=$("rme"),ph=Number($("rph").value),lg=Number($("rlg").value);e.textContent="";
 if(!ph&&!lg)return e.textContent="Both options are \"Never delete\" - choose days and tap Save first";
-if(!confirm("Delete NOW all photos older than the saved setting and all old log entries?\n(Tap Save first if you just changed the options.)"))return;
+if(!confirm("Delete NOW all photos, leave memos and medical certificates older than the saved setting and all old log entries?\n(Tap Save first if you just changed the options.)"))return;
 $("rmi").textContent="Deleting... this can take a minute. Please wait.";
 try{const j=await call({k:"rrun"});if(j.err){$("rmi").textContent="";return j.err=="auth"?kick():e.textContent=j.err}
-const o=j.res;alert("Done.\nPhotos deleted: "+o.photos+"\nActivity-log rows deleted: "+o.audit+"\nSecurity-log rows deleted: "+o.blocked+(o.more?"\n\nTime ran out - the rest will be deleted at the next run (tap again or wait for the night run).":"")+(o.err?"\n\n"+o.err+" photo(s) could not be deleted.":""));retv()}
+const o=j.res;alert("Done.\nPhotos / documents deleted: "+o.photos+"\nActivity-log rows deleted: "+o.audit+"\nSecurity-log rows deleted: "+o.blocked+(o.more?"\n\nTime ran out - the rest will be deleted at the next run (tap again or wait for the night run).":"")+(o.err?"\n\n"+o.err+" photo(s) could not be deleted.":""));retv()}
 catch(x){$("rmi").textContent="";e.textContent="No answer from the server (internet?). Tap Delete old items now again to continue."}}
 async function ren(){if(!SM())return;const n=(prompt("New name of the app (3 to 40 characters)",AN)||"").replace(/\s+/g," ").trim();if(!n||n==AN)return;
 if(n.length<3||n.length>40)return alert("The name must be 3 to 40 characters");
@@ -368,7 +383,7 @@ function kick(){alert("Login no longer valid (password or Employee ID changed, o
 async function sync(q){if(!me||!U())return;if(busy){again=1;return}busy=1;
 try{for(const id of [...DQ]){const j=await call({k:"del",id});if(j.err=="auth")return kick();if(j.ok){DQ=DQ.filter(x=>x!=id);sv()}}
 for(const r of R.filter(r=>!r.sy)){const j=await call({...r,k:"rec"});if(j.err=="auth")return kick();
-if(j.ok){if(isA()){r.sy=1;r.photo=""}else R=R.filter(z=>z!==r);sv()}else if(j.fatal){R=R.filter(z=>z!==r);if(j.dup&&!isA()&&j.mark&&j.mark.d==D(new Date()))TM={b:me.b,...j.mark};sv();alert(j.err);if($("tb"))rows();if(j.dup&&!isA()&&cur==0)form()}else if(j.err&&!q)alert(j.err)}
+if(j.ok){if(isA()){r.sy=1;r.photo="";r.doc=""}else R=R.filter(z=>z!==r);sv()}else if(j.fatal){R=R.filter(z=>z!==r);if(j.dup&&!isA()&&j.mark&&j.mark.d==D(new Date()))TM={b:me.b,...j.mark};sv();alert(j.err);if($("tb"))rows();if(j.dup&&!isA()&&cur==0)form()}else if(j.err&&!q)alert(j.err)}
 if(!isA()){const was=!!myMark(),t=await call({k:"today"}),md=await call({k:"mydays"});if(md.ok){MD=md.list;sv()}
 let ch=0;if(t.ok&&t.me&&(t.me.o!=me.o||t.me.n!=me.n)){me.o=t.me.o;me.n=t.me.n;ch=1;sv()} // transferred / renamed by admin
 if(t.ok){if(t.marked)TM={b:me.b,...t.mark};else if(!R.some(r=>r.e==me.n&&r.d==D(new Date())))TM=null;sv();if(cur==0&&(ch||!!myMark()!=was))form()}else if(md.ok&&cur==0&&!!myMark()!=was)form()}
