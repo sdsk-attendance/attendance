@@ -5,8 +5,10 @@
 :root{--navy:#163A5F;--teal:#087E8B;--teal2:#18A6A6;--bg:#F4F7FA;--card:#fff;--line:#DCE3EA;--txt:#344054;--mut:#667085;--hs:#EAF2F8;--green:#16A34A;--red:#DC2626;--amber:#D97706}
 *{box-sizing:border-box}body{margin:0;font:15px "Segoe UI",system-ui,-apple-system,Roboto,sans-serif;background:var(--bg);color:var(--txt);padding-bottom:78px}
 header{background:var(--navy);color:#fff;padding:14px 16px;font-size:18px;font-weight:700;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px;position:sticky;top:0;z-index:1000;box-shadow:0 2px 8px rgba(22,58,95,.25)}
+@keyframes sp{to{transform:rotate(360deg)}}header a.bs svg{transform-origin:50% 50%}header a.bs.spin svg{animation:sp .8s linear infinite}
 header a.bt{display:inline-flex;align-items:center;gap:7px;margin:0;padding:6px 14px;border-radius:999px;color:#fff;font-size:14px;font-weight:700;text-decoration:none;box-shadow:0 0 0 2px rgba(255,255,255,.3),0 2px 5px rgba(0,0,0,.3)}header a.bt i{width:1px;height:16px;background:rgba(255,255,255,.6)}header a.bs{background:linear-gradient(#ff8a1f,#e86a00)}header a.bp{background:linear-gradient(#3fbf2a,#1a8a10)}
-header a.lob{margin:0 0 0 6px;display:inline-flex;align-items:center;gap:6px;background:linear-gradient(#e51b1b,#c80000);color:#fff;font-size:15px;font-weight:700;padding:8px 14px;border-radius:12px;text-decoration:none;box-shadow:0 0 0 2px rgba(255,255,255,.25),0 2px 6px rgba(0,0,0,.35)}#hl{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:14px}#hl.hide{display:none}#hl a{margin-left:0}
+header a.lob{margin:0 0 0 6px;display:inline-flex;align-items:center;gap:6px;background:linear-gradient(#e51b1b,#c80000);color:#fff;font-size:15px;font-weight:700;padding:8px 14px;border-radius:12px;text-decoration:none;box-shadow:0 0 0 2px rgba(255,255,255,.25),0 2px 6px rgba(0,0,0,.35)}#hl{display:flex;flex-wrap:nowrap;white-space:nowrap;align-items:center;justify-content:flex-end;gap:14px}#hl.hide{display:none}#hl a{margin-left:0}
+@media(max-width:600px){#hl{width:100%;justify-content:space-between;gap:5px}#hl a{font-size:12px}header a.bt{padding:5px 8px;gap:4px;font-size:12px}header a.bt i{display:none}header a.bt svg,header a.lob svg{width:14px;height:14px}header a.lob{margin:0;padding:5px 8px;font-size:12px;gap:4px}}
 header a{color:var(--hs);font-size:13px;font-weight:400;margin-left:12px}header small{width:100%;color:var(--hs);font-size:13px;font-weight:400}
 main{padding:16px;background:var(--bg);min-height:85vh;max-width:900px;margin:0 auto}
 label{display:block;margin:14px 0 6px;font-size:14px;color:var(--txt)}label b{color:var(--txt)}
@@ -26,7 +28,7 @@ a{color:var(--teal)}h3,h4{color:var(--navy)}
 img{max-width:100%;border-radius:12px;margin-top:8px}.hide{display:none}.msg{color:var(--red);font-size:13px}
 .row{display:flex;gap:8px}.row>*{flex:1}.pp button{padding:6px;font-size:13px;margin-top:6px}.sm{font-size:12px;color:var(--mut)}
 </style></head><body>
-<header><span id=an onclick="ren()">Attendance SDSK-Central</span><span id=hl class=hide><a id=lg class=hide href="#" onclick="alog();return false">View Log</a><a href="#" class="bt bs" onclick="sync();return false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14-4"/><path d="M6 3v4h4"/><path d="M4 13a8 8 0 0 0 14 4"/><path d="M18 21v-4h-4"/></svg><i></i>Sync</a><a id=cv href="#" onclick="csv();return false">CSV</a><a href="#" class="bt bp" onclick="pw();return false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2" fill="#fff"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><i></i>Password</a><a href="#" class=lob onclick="out();return false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4"/><path d="M10 12h11"/><path d="M17 8l4 4-4 4"/></svg>Logout</a></span><small id=who></small></header>
+<header><span id=an onclick="ren()">Attendance SDSK-Central</span><span id=hl class=hide><a id=lg class=hide href="#" onclick="alog();return false">View Log</a><a id=cv href="#" onclick="csv();return false">CSV</a><a href="#" class="bt bs" onclick="sync();return false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14-4"/><path d="M6 3v4h4"/><path d="M4 13a8 8 0 0 0 14 4"/><path d="M18 21v-4h-4"/></svg><i></i>Sync</a><a href="#" class="bt bp" onclick="pw();return false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2" fill="#fff"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><i></i>Password</a><a href="#" class=lob onclick="out();return false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4"/><path d="M10 12h11"/><path d="M17 8l4 4-4 4"/></svg>Logout</a></span><small id=who></small></header>
 <main id="m"></main><nav id="nv" class=hide></nav>
 <script>
 const URL0="https://script.google.com/macros/s/AKfycbyf9-PGjHPG6-k6uv-1oo8b6c2zLgkYCHEGoc6wiFsDECMBa2VUSDNLhOGWxByL1GxchA/exec"; // paste your Google Apps Script web app URL here once, so staff never have to
@@ -388,7 +390,9 @@ try{const j=await call({k:"aname",n});if(j.err)return j.err=="auth"?kick():alert
 
 // ---------- sync ----------
 function kick(){alert("Login no longer valid (password or Employee ID changed, or employee removed). Please login again.");me=null;delete localStorage.sess;login()}
+function spin(on){document.querySelectorAll("a.bs").forEach(e=>e.classList.toggle("spin",!!on))}
 async function sync(q){if(!me||!U())return;if(busy){again=1;return}busy=1;
+const t0=Date.now();spin(1);
 try{for(const id of [...DQ]){const j=await call({k:"del",id});if(j.err=="auth")return kick();if(j.ok){DQ=DQ.filter(x=>x!=id);sv()}}
 for(const r of R.filter(r=>!r.sy)){const j=await call({...r,k:r.chg?"rrng":"rec"});if(j.err=="auth")return kick();
 if(j.ok){if(isA()){r.sy=1;r.photo="";r.doc="";r.chg=0}else R=R.filter(z=>z!==r);sv()}else if(j.fatal){R=R.filter(z=>z!==r);if(j.dup&&!isA()&&j.mark&&j.mark.d==D(new Date()))TM={b:me.b,...j.mark};sv();alert(j.err);if($("tb"))rows();if(j.dup&&!isA()&&cur==0)form()}else if(j.err&&!q)alert(j.err)}
@@ -399,7 +403,7 @@ if(isA()){const s=await call({k:"staff"});if(s.ok){SF=s.list;const m0=SF.find(z=
 if(j.ok){const pend=R.filter(r=>!r.sy),ids=new Set(pend.map(r=>r.id));
 R=[...pend,...j.list.map(x=>({...x,id:Number(x.id),sy:1})).filter(x=>!ids.has(x.id)&&!DQ.some(d=>d==x.id))].sort((a,b)=>b.id-a.id)}}
 sv();if($("tb"))rows();if($("mp"))pins();if(cur==3&&$("st"))srows()}
-catch(e){if(!q)alert("Could not sync - check internet. Records are saved on this phone.")}finally{busy=0;if(again){again=0;sync(1)}}}
+catch(e){if(!q)alert("Could not sync - check internet. Records are saved on this phone.")}finally{busy=0;if(again){again=0;sync(1)}else setTimeout(()=>{if(!busy)spin(0)},Math.max(0,700-(Date.now()-t0)))}}
 // ---- xlsx (no library needed: builds a real .xlsx file) ----
 const crcT=(()=>{const t=[];for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
 const crc=b=>{let c=-1;for(let i=0;i<b.length;i++)c=crcT[(c^b[i])&255]^(c>>>8);return(c^-1)>>>0};
