@@ -27,7 +27,7 @@ img{max-width:100%;border-radius:12px;margin-top:8px}.hide{display:none}.msg{col
 <header><span id=an onclick="ren()">Attendance SDSK-Central</span><span id=hl class=hide><a id=lg class=hide href="#" onclick="alog();return false">View Log</a><a href="#" onclick="sync();return false">Sync</a><a id=cv href="#" onclick="csv();return false">CSV</a><a href="#" onclick="pw();return false">Password</a><a href="#" onclick="out();return false">Logout</a></span><small id=who></small></header>
 <main id="m"></main><nav id="nv" class=hide></nav>
 <script>
-const URL0="https://script.google.com/macros/s/AKfycbxUVQ0heKMvnz2JfdgLxM4fXl-59dAes6toZI_hJbYx10UvcP_MsqrSf8IF2x59xaaTcQ/exec"; // paste your Google Apps Script web app URL here once, so staff never have to
+const URL0="https://script.google.com/macros/s/AKfycbyf9-PGjHPG6-k6uv-1oo8b6c2zLgkYCHEGoc6wiFsDECMBa2VUSDNLhOGWxByL1GxchA/exec"; // paste your Google Apps Script web app URL here once, so staff never have to
 const DEFOFF=["SDSK-Central","PSSK D-Division","PSSK E-Division","PSSK Gate Hakima","PSSK Islamabad"]; // used only until the list loads from the server
 const offNames=()=>OFFS.length?OFFS.map(x=>x.o):DEFOFF;
 const ST=["Present","Leave","OSD","Rest","Medical"];
@@ -57,7 +57,7 @@ const u=uaShort(),c=navigator.connection||{},ua=navigator.userAgent||"",pl=/iPho
 const dflds=i=>{const b=Number(i.bat),ss=String(i.ssid||"").replace(/^"|"$/g,""),bs=i.bssid=="02:00:00:00:00:00"?"":(i.bssid||"");return{src:i.src,did:i.id,dm:((i.brand||"")+" "+(i.model||"")).trim(),os:i.os||"",bat:i.bat===""||i.bat==null||isNaN(b)?"":b+"%"+(i.chg?" charging":""),net:i.net||"",wf:ss&&ss!="<unknown ssid>"?ss+(bs?" ("+bs+")":""):bs,av:i.av||""}};
 function blocked(){if(!devBad())return false;camStop();stopGps();$("hl").className="hide";$("nv").className="hide";$("who").textContent="";
 const rs=devWhy().filter(k=>k!="web");$("m").innerHTML='<h3>Security check failed</h3>'+(rs.length?"<p>Please fix:</p><ul>"+rs.map(k=>"<li>"+esc(WHY[k])+"</li>").join("")+"</ul>":"")+'<p>This app works only on phones that are <b>not rooted</b>, have <b>Developer options turned off</b>, <b>Automatic date &amp; time ON</b> and no fake-location app running.</p>'+(window.Android?"":"<p>Please open the official Attendance app.</p>")+'<button onclick="location.reload()">Check again</button>';return true}
-const APPV=9.0,NEEDV=9.0;let SV=null,warned=0; // APPV = this app, NEEDV = oldest server (Code.gs) version this app can work with
+const APPV=9.1,NEEDV=9.0;let SV=null,warned=0; // APPV = this app, NEEDV = oldest server (Code.gs) version this app can work with
 const srvOld=()=>SV!==null&&SV<NEEDV;
 const MAXACC=150; // GPS accuracy (metres) needed before "Present" can be saved
 const U=()=>URL0||localStorage.url||"",isA=()=>!!(me&&me.a);
@@ -74,6 +74,7 @@ const who=()=>{if(me&&$("who")){const n=R.filter(r=>!r.sy).length;$("who").textC
 const p2=n=>("0"+n).slice(-2),D=t=>p2(t.getDate())+"/"+p2(t.getMonth()+1)+"/"+t.getFullYear(),iso=t=>t.getFullYear()+"-"+p2(t.getMonth()+1)+"-"+p2(t.getDate()),T=t=>t.toLocaleTimeString("en-IN");
 // list of dd/mm/yyyy days from iso a to iso b (inclusive); null if invalid or more than 90 days
 const span=(a,b)=>{const ok=/^\d{4}-\d\d-\d\d$/;if(!ok.test(a)||!ok.test(b))return null;const o=[];for(let t=Date.UTC(+a.slice(0,4),+a.slice(5,7)-1,+a.slice(8,10)),e=Date.UTC(+b.slice(0,4),+b.slice(5,7)-1,+b.slice(8,10));t<=e;t+=864e5){const z=new Date(t);o.push(p2(z.getUTCDate())+"/"+p2(z.getUTCMonth()+1)+"/"+z.getUTCFullYear());if(o.length>90)return null}return o};
+const d2i=x=>String(x).split("/").reverse().join("-"); // dd/mm/yyyy -> yyyy-mm-dd (date input)
 const dn=x=>Date.UTC(+x.slice(6),+x.slice(3,5)-1,+x.slice(0,2)),fdm=t=>{const z=new Date(t);return p2(z.getUTCDate())+"/"+p2(z.getUTCMonth()+1)+"/"+z.getUTCFullYear()};
 // is there already a record for employee e on day x (dd/mm/yyyy)?  Saved rows count by their own day; rows still waiting to upload count by their whole period
 const has=(e,x)=>R.find(r=>r.e==e&&(r.sy?r.d==x:covers(r,x)));
@@ -125,8 +126,8 @@ function rgc(){const a=$("fd"),b=$("td");if(a.value&&(!b.value||b.value<a.value)
 const ds=a.value&&b.value?span(a.value,b.value):null,n=ds?ds.length:0,c=ds&&!ed?clash(ds):null;
 $("rgn").style.color=c?"#c00":"";
 $("rgn").textContent=c?"Already marked on "+c.d+" ("+c.s+"). Choose dates that are not already marked.":n?n+" day"+(n>1?"s":"")+": "+ds[0]+(n>1?" to "+ds[n-1]:""):a.value&&b.value?"Maximum 90 days at a time":""}
-function stat(){const s=$("s").value;const rg=!!s&&s!="Present"&&!ed;$("rg").className=rg?"":"hide";
-if(rg){const t0=iso(new Date());if(!$("fd").value){$("fd").value=t0;$("td").value=t0}if(!isA())$("fd").min=$("td").min=t0;rgc()}
+function stat(){const s=$("s").value;const rg=!!s&&s!="Present"&&(!ed||ed.s!="Present");$("rg").className=rg?"":"hide";
+if(rg){const t0=iso(new Date());if(!$("fd").value){if(ed){$("fd").value=d2i(ed.rf||ed.d);$("td").value=d2i(ed.rt||ed.d)}else{$("fd").value=t0;$("td").value=t0}}if(!isA())$("fd").min=$("td").min=t0;rgc()}
 $("osd").className=s=="OSD"?"":"hide";const dcs=s=="Leave"||s=="Medical";$("dc").className=dcs?"":"hide";if(dcs)$("dcl").textContent=(s=="Leave"?"Leave Memo":"Medical Certificate")+" - photo or PDF (required)";else{DOC="";$("dcf").value="";$("dcn").textContent=""}$("pr").className=s=="Present"&&!ed?"":"hide";if(s!="Present")camStop();else if(!ed){if(!pos)loc();if(!photo&&!camS)camStart()}}
 const stopGps=()=>{if(wid!=null){navigator.geolocation.clearWatch(wid);wid=null}};
 // keeps improving the fix until it is accurate enough (<= MAXACC metres)
@@ -174,11 +175,16 @@ rf=ds[0];rt=ds[ds.length-1]}
 if(!ed&&!isA()&&me.one!==false){adding=1;
 if(navigator.onLine){try{const j=await call({k:"mydays"});if(j.ok){MD=j.list;sv()}}catch(x){}} // fresh list from the server when online
 adding=0;const c=clash(ds);if(c)return er("Attendance is already marked on "+c.d+" ("+c.s+"). You cannot mark again for the same date. Choose other dates.")}
+let chg=0,nrf="",nrt="";
+if(ed&&!p&&ed.s!="Present"){const a=v("fd"),b=v("td");if(!a||!b)return er("Select From date and To date from the calendar");if(b<a)return er("To date cannot be before From date");
+const d2=span(a,b);if(!d2)return er("Maximum 90 days at a time (or date not valid)");nrf=d2[0];nrt=d2[d2.length-1];
+if(nrf!=(ed.rf||ed.d)||nrt!=(ed.rt||ed.d)){if(SV!==null&&SV<9.1)return er("The server is an old version - a changed From / To period would not be saved. Redeploy Code.gs (New version).");
+if(!confirm("Change the period of "+v("e")+" to "+nrf+(nrf!=nrt?" to "+nrt:"")+" ("+d2.length+" day"+(d2.length>1?"s":"")+") as "+s+"?\nDays that fall outside the new period are deleted; new days are added."))return;chg=1}}
 const hit=isA()&&me.one!==false&&!ed&&ds.find(x=>has(v("e"),x));
 if(hit)return er("Attendance is already marked for "+v("e")+(hit==D(new Date())?" today":" on "+hit)+". Open View Attendance to edit it.");
 if(rf&&!confirm(s+": "+rf+(rf!=rt?" to "+rt:"")+" ("+ds.length+" day"+(ds.length>1?"s":"")+").\nEvery one of these days will be recorded as "+s+". Save?"))return;
 const o={o:v("o"),e:v("e"),s,od:s=="OSD"?v("od").trim().toUpperCase():""};if(DOC&&(s=="Leave"||s=="Medical"))o.doc=DOC;
-if(ed){Object.assign(ed,o,{d:v("d"),t:v("t"),sy:0});if(!p){ed.la="";ed.lo="";ed.photo="";ed.pu=""}ed=null;sv();sync(1);show(back);return alert("Updated")}
+if(ed){Object.assign(ed,o,{d:v("d"),t:v("t"),sy:0,chg:chg&&ed.sy?1:0});if(chg){ed.rf=nrf;ed.rt=nrt;if(!ed.sy)ed.rng=1}if(!p){ed.la="";ed.lo="";ed.photo="";ed.pu=""}ed=null;sv();sync(1);show(back);return alert("Updated")}
 stopGps();camStop();const n=new Date();const dii=DI();R.unshift({id:Date.now(),d:D(n),t:T(n),dv:DV(),di:dii,...dflds(dii),...o,rf,rt,rng:rf?1:0,la:p?pos.la:"",lo:p?pos.lo:"",ac:p?pos.ac:"",off:navigator.onLine?0:1,photo:p?photo:"",sy:0});
 if(!isA()){ds.forEach(x=>{if(!MD.some(z=>z.d==x))MD.push({d:x,s:o.s,t:T(n),rf,rt})});if(ds.includes(D(n)))TM={b:me.b,d:D(n),s:o.s,t:T(n),rf,rt}}sv();sync(1);form();alert(rf&&rf!=rt?s+" saved for "+ds.length+" days: "+rf+" to "+rt:"Attendance saved")}
 
@@ -382,8 +388,8 @@ try{const j=await call({k:"aname",n});if(j.err)return j.err=="auth"?kick():alert
 function kick(){alert("Login no longer valid (password or Employee ID changed, or employee removed). Please login again.");me=null;delete localStorage.sess;login()}
 async function sync(q){if(!me||!U())return;if(busy){again=1;return}busy=1;
 try{for(const id of [...DQ]){const j=await call({k:"del",id});if(j.err=="auth")return kick();if(j.ok){DQ=DQ.filter(x=>x!=id);sv()}}
-for(const r of R.filter(r=>!r.sy)){const j=await call({...r,k:"rec"});if(j.err=="auth")return kick();
-if(j.ok){if(isA()){r.sy=1;r.photo="";r.doc=""}else R=R.filter(z=>z!==r);sv()}else if(j.fatal){R=R.filter(z=>z!==r);if(j.dup&&!isA()&&j.mark&&j.mark.d==D(new Date()))TM={b:me.b,...j.mark};sv();alert(j.err);if($("tb"))rows();if(j.dup&&!isA()&&cur==0)form()}else if(j.err&&!q)alert(j.err)}
+for(const r of R.filter(r=>!r.sy)){const j=await call({...r,k:r.chg?"rrng":"rec"});if(j.err=="auth")return kick();
+if(j.ok){if(isA()){r.sy=1;r.photo="";r.doc="";r.chg=0}else R=R.filter(z=>z!==r);sv()}else if(j.fatal){R=R.filter(z=>z!==r);if(j.dup&&!isA()&&j.mark&&j.mark.d==D(new Date()))TM={b:me.b,...j.mark};sv();alert(j.err);if($("tb"))rows();if(j.dup&&!isA()&&cur==0)form()}else if(j.err&&!q)alert(j.err)}
 if(!isA()){const was=!!myMark(),t=await call({k:"today"}),md=await call({k:"mydays"});if(md.ok){MD=md.list;sv()}
 let ch=0;if(t.ok&&t.me&&(t.me.o!=me.o||t.me.n!=me.n)){me.o=t.me.o;me.n=t.me.n;ch=1;sv()} // transferred / renamed by admin
 if(t.ok){if(t.marked)TM={b:me.b,...t.mark};else if(!R.some(r=>r.e==me.n&&r.d==D(new Date())))TM=null;sv();if(cur==0&&(ch||!!myMark()!=was))form()}else if(md.ok&&cur==0&&!!myMark()!=was)form()}
