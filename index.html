@@ -27,10 +27,16 @@ tr[onclick]:active{background:#EAF2F8}
 a{color:var(--teal)}h3,h4{color:var(--navy)}
 img{max-width:100%;border-radius:12px;margin-top:8px}.hide{display:none}.msg{color:var(--red);font-size:13px}
 .row{display:flex;gap:8px}.row>*{flex:1}.pp button{padding:6px;font-size:13px;margin-top:6px}.sm{font-size:12px;color:var(--mut)}
+.dlo{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:5000;display:flex;align-items:center;justify-content:center;padding:20px}.dlb{background:#fff;border-radius:16px;padding:20px;width:100%;max-width:380px;box-shadow:0 8px 30px rgba(0,0,0,.35)}.dlm{white-space:pre-wrap;word-break:break-word;color:var(--txt);font-size:15px;line-height:1.4}.dli{margin-top:14px}.dla{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}.dla span{padding:10px 18px;border-radius:10px;font-weight:700;font-size:15px;background:var(--teal);color:#fff}.dla .dlc{background:#EEF2F6;color:var(--txt)}.rem{display:flex;align-items:center;gap:10px;margin:14px 0 0;font-size:14px}.rem input{width:22px;height:22px;padding:0;margin:0;accent-color:var(--teal)}
 </style></head><body>
 <header><span id=an onclick="ren()">Attendance SDSK-Central</span><span id=hl class=hide><a id=lg class=hide href="#" onclick="alog();return false">View Log</a><a id=cv href="#" onclick="csv();return false">CSV</a><a href="#" class="bt bs" onclick="sync();return false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14-4"/><path d="M6 3v4h4"/><path d="M4 13a8 8 0 0 0 14 4"/><path d="M18 21v-4h-4"/></svg><i></i>Sync</a><a href="#" class="bt bp" onclick="pw();return false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2" fill="#fff"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><i></i>Password</a><a href="#" class=lob onclick="out();return false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4"/><path d="M10 12h11"/><path d="M17 8l4 4-4 4"/></svg>Logout</a></span><small id=who></small></header>
 <main id="m"></main><nav id="nv" class=hide></nav>
 <script>
+// in-page dialogs (replace the browser's "The page at ... says" boxes)
+let DLQ=Promise.resolve();
+function dlg(t,m,d){const r=DLQ.then(()=>new Promise(res=>{const o=document.createElement("div");o.className="dlo";o.innerHTML='<div class="dlb"><div class="dlm"></div>'+(t=="p"?'<input class="dli">':"")+'<div class="dla">'+(t=="a"?"":'<span class="dlc">Cancel</span>')+'<span class="dlk">OK</span></div></div>';o.querySelector(".dlm").textContent=String(m);const i=o.querySelector(".dli");if(i)i.value=d||"";const fin=v=>{o.remove();res(v)};o.querySelector(".dlk").onclick=()=>fin(t=="p"?i.value:true);const c=o.querySelector(".dlc");if(c)c.onclick=()=>fin(t=="p"?null:false);document.body.appendChild(o);if(i){i.focus();i.select();i.onkeydown=e=>{if(e.key=="Enter")fin(i.value)}}}));DLQ=r.catch(()=>{});return r}
+const cf=m=>dlg("c",m),pr=(m,d)=>dlg("p",m,d);window.alert=m=>{dlg("a",m)};
+
 const URL0="https://script.google.com/macros/s/AKfycbyf9-PGjHPG6-k6uv-1oo8b6c2zLgkYCHEGoc6wiFsDECMBa2VUSDNLhOGWxByL1GxchA/exec"; // paste your Google Apps Script web app URL here once, so staff never have to
 const DEFOFF=["SDSK-Central","PSSK D-Division","PSSK E-Division","PSSK Gate Hakima","PSSK Islamabad"]; // used only until the list loads from the server
 const offNames=()=>OFFS.length?OFFS.map(x=>x.o):DEFOFF;
@@ -89,15 +95,15 @@ const call=async(o,cr)=>{const j=await(await fetch(U(),{method:"POST",body:JSON.
 if(j&&typeof j=="object"){if(j.an&&j.an!=AN)setAN(j.an);if(j.ds){DGL=j.ds;try{localStorage.dgl=JSON.stringify(j.ds)}catch(e){}}SV=parseFloat(j.ver)||0;if(srvOld()&&!warned){warned=1;setTimeout(()=>alert("WARNING: the server (Google Apps Script) is an OLD version, so From / To dates, Employee ID and Designation will NOT be saved correctly.\n\nIn Apps Script: Deploy > Manage deployments > Edit > New version > Deploy, and make sure URL0 in this app is the URL of that same deployment."),50)}who()}return j};
 
 function login(){if(blocked())return;setAN(AN);$("lg").className="hide";if(U()&&navigator.onLine)fetch(U()).then(r=>r.json()).then(j=>{if(j&&j.an)setAN(j.an)}).catch(()=>{});$("hl").className="hide";$("nv").className="hide";$("who").textContent="";
-$("m").innerHTML=`<label>Employee ID (user name)</label><input id=u inputmode=numeric autocomplete=username><label>Password</label><input id=p type=password autocomplete=current-password>${U()?"":"<label>Server URL (one-time setup)</label><input id=url placeholder='https://script.google.com/macros/s/.../exec'>"}<p class=msg id=err></p><button id=lb onclick=go()>Login</button><p class=sm>First login: your password is your Employee ID. Please change it from the Password link.</p>`}
+$("m").innerHTML=`<label>Employee ID (user name)</label><input id=u inputmode=numeric autocomplete=username><label>Password</label><input id=p type=password autocomplete=current-password><label class=rem><input type=checkbox id=rm>Remember user name and password</label>${U()?"":"<label>Server URL (one-time setup)</label><input id=url placeholder='https://script.google.com/macros/s/.../exec'>"}<p class=msg id=err></p><button id=lb onclick=go()>Login</button><p class=sm>First login: your password is your Employee ID. Please change it from the Password link.</p>`;try{const q=JSON.parse(localStorage.rem||"null");if(q&&q.b){$("u").value=q.b;$("p").value=q.p||"";$("rm").checked=true}}catch(e){}}
 async function go(){const b=$("u").value.trim(),p=$("p").value,er=m=>$("err").textContent=m;
 if($("url")&&$("url").value.trim())localStorage.url=$("url").value.trim();
 if(!b||!p)return er("Enter Employee ID and password");if(!U())return er("Server URL missing");
 $("lb").disabled=true;er("");
 try{const j=await call({k:"login"},{b,p});if(j.err)throw j.dev?j.err:0;
-me={...j.me,p,one:j.one};SF=[];MD=[];R=R.filter(r=>!r.sy||isA());sv();app();lqf()}
+me={...j.me,p,one:j.one};try{if($("rm").checked)localStorage.rem=JSON.stringify({b,p});else delete localStorage.rem}catch(e){}SF=[];MD=[];R=R.filter(r=>!r.sy||isA());sv();app();lqf()}
 catch(e){$("lb").disabled=false;er(e===0?"Wrong Employee ID or password":typeof e=="string"?e:"No connection. First login needs internet.")}}
-async function out(){if(R.some(r=>!r.sy)&&!confirm("Some records are not synced yet and will stay on this phone. Logout anyway?"))return;
+async function out(){if(R.some(r=>!r.sy)&&!await cf("Some records are not synced yet and will stay on this phone. Logout anyway?"))return;
 const c={b:me.b,p:me.p},at=D(new Date())+" "+T(new Date());let ok=false;
 if(navigator.onLine){try{const j=await Promise.race([call({k:"logout"}),new Promise((_,no)=>setTimeout(()=>no(0),6000))]);ok=!!(j&&j.ok)}catch(e){}}
 if(!ok){LQ.push({...c,at});try{localStorage.lq=JSON.stringify(LQ)}catch(e){}} // offline: the logout is reported when the phone is online again
@@ -105,8 +111,8 @@ me=null;delete localStorage.sess;login()}
 // send logouts that could not be reported earlier (uses the credentials saved at that time; dropped if they are no longer valid)
 let lqb=0;async function lqf(){if(lqb||!LQ.length||!navigator.onLine||!U())return;lqb=1;
 try{for(const q of [...LQ]){const j=await call({k:"logout",at:q.at},{b:q.b,p:q.p});if(j&&(j.ok||j.err=="auth")){LQ=LQ.filter(z=>z!==q);localStorage.lq=JSON.stringify(LQ)}else break}}catch(e){}lqb=0}
-async function pw(){const p=prompt("New password (min 4 characters)");if(!p)return;if(p.length<4)return alert("Too short");
-try{const j=await call({k:"pw",np:p});if(j.err)return alert(j.err);me.p=p;sv();alert("Password changed")}catch(e){alert("Needs internet connection")}}
+async function pw(){const p=await pr("New password (min 4 characters)");if(!p)return;if(p.length<4)return alert("Too short");
+try{const j=await call({k:"pw",np:p});if(j.err)return alert(j.err);me.p=p;sv();try{if(localStorage.rem)localStorage.rem=JSON.stringify({b:me.b,p})}catch(e){}alert("Password changed")}catch(e){alert("Needs internet connection")}}
 function app(){if(blocked())return;$("hl").className="";$("cv").className=isA()?"":"hide";$("lg").className=SM()?"":"hide";setAN(AN);$("nv").className="";who();
 $("nv").innerHTML=(isA()?["Mark Attendance","View Attendance","Location view","Staff","Offices"]:["Mark Your Attendance Here"]).map((x,i)=>`<div id=t${i} onclick="show(${i})"><svg viewBox="0 0 24 24">${NI[i]}</svg>${x}</div>`).join("");show(0);sync(1)}
 function show(n){cur=n;stopGps();camStop();[...$("nv").children].forEach((c,i)=>c.className=i==n?"on":"");[()=>form(),list,mapv,staffv,offv][n]()}
@@ -183,10 +189,10 @@ let chg=0,nrf="",nrt="";
 if(ed&&!p&&ed.s!="Present"){const a=v("fd"),b=v("td");if(!a||!b)return er("Select From date and To date from the calendar");if(b<a)return er("To date cannot be before From date");
 const d2=span(a,b);if(!d2)return er("Maximum 90 days at a time (or date not valid)");nrf=d2[0];nrt=d2[d2.length-1];
 if(nrf!=(ed.rf||ed.d)||nrt!=(ed.rt||ed.d)){if(SV!==null&&SV<9.1)return er("The server is an old version - a changed From / To period would not be saved. Redeploy Code.gs (New version).");
-if(!confirm("Change the period of "+v("e")+" to "+nrf+(nrf!=nrt?" to "+nrt:"")+" ("+d2.length+" day"+(d2.length>1?"s":"")+") as "+s+"?\nDays that fall outside the new period are deleted; new days are added."))return;chg=1}}
+if(!await cf("Change the period of "+v("e")+" to "+nrf+(nrf!=nrt?" to "+nrt:"")+" ("+d2.length+" day"+(d2.length>1?"s":"")+") as "+s+"?\nDays that fall outside the new period are deleted; new days are added."))return;chg=1}}
 const hit=isA()&&me.one!==false&&!ed&&ds.find(x=>has(v("e"),x));
 if(hit)return er("Attendance is already marked for "+v("e")+(hit==D(new Date())?" today":" on "+hit)+". Open View Attendance to edit it.");
-if(rf&&!confirm(s+": "+rf+(rf!=rt?" to "+rt:"")+" ("+ds.length+" day"+(ds.length>1?"s":"")+").\nEvery one of these days will be recorded as "+s+". Save?"))return;
+if(rf&&!await cf(s+": "+rf+(rf!=rt?" to "+rt:"")+" ("+ds.length+" day"+(ds.length>1?"s":"")+").\nEvery one of these days will be recorded as "+s+". Save?"))return;
 const o={o:v("o"),e:v("e"),s,od:s=="OSD"?v("od").trim().toUpperCase():""};if(DOC&&(s=="Leave"||s=="Medical"))o.doc=DOC;
 if(ed){Object.assign(ed,o,{d:v("d"),t:v("t"),sy:0,chg:chg&&ed.sy?1:0});if(chg){ed.rf=nrf;ed.rt=nrt;if(!ed.sy)ed.rng=1}if(!p){ed.la="";ed.lo="";ed.photo="";ed.pu=""}ed=null;sv();sync(1);show(back);return alert("Updated")}
 stopGps();camStop();const n=new Date();const dii=DI();R.unshift({id:Date.now(),d:D(n),t:T(n),dv:DV(),di:dii,...dflds(dii),...o,rf,rt,rng:rf?1:0,la:p?pos.la:"",lo:p?pos.lo:"",ac:p?pos.ac:"",off:navigator.onLine?0:1,photo:p?photo:"",sy:0});
@@ -228,7 +234,7 @@ async function phoLoad(r){const e=$("ph");if(!e)return;if(PH[r.id]){e.innerHTML=
 try{const j=await call({k:"photo",id:r.id});if($("ph")!==e)return;if(j.err)return j.err=="auth"?kick():e.innerHTML=`<p class=msg>${esc(j.err)}</p>${/^https?:/.test(r.pu)?`<a href="${esc(r.pu)}" target=_blank>Open in Google Drive</a>`:""}`;
 const ks=Object.keys(PH);if(ks.length>20)delete PH[ks[0]];PH[r.id]=j.img;e.innerHTML=phH(r.id)}catch(x){if($("ph")===e)e.textContent="Photo needs internet connection"}}
 function edit(id,from){back=from;form(R.find(x=>x.id==id))}
-function del(id,from){if(!isA()||!confirm("Delete this record?"))return;R=R.filter(x=>x.id!=id);DQ.push(id);sv();sync(1);show(from)}
+async function del(id,from){if(!isA()||!await cf("Delete this record?"))return;R=R.filter(x=>x.id!=id);DQ.push(id);sv();sync(1);show(from)}
 
 // ---------- Location view (map) ----------
 function mapv(){map=null;$("m").innerHTML=`<div class=row><input type=date id=f onchange=pins(1)>${offSel("pins(1)")}</div>${flagSel("pins(1)")}<p class=sm id=mc></p><div id=mp style="height:64vh"></div>`;$("f").value=iso(new Date());pins(1)}
@@ -257,7 +263,7 @@ if(!omap)return;ofdraw();x?omap.setView([x.la,x.lo],17):omap.setView([31.63,74.8
 function osel(i){$("oo").value=offNames()[i];ofsel();window.scrollTo(0,0)}
 async function oadd(){const n=$("on").value.replace(/\s+/g," ").trim(),e=$("err2");if(!n)return e.textContent="Enter the Saanjh Kendra name";
 try{const j=await call({k:"oadd",o:n});if(j.err)return j.err=="auth"?kick():e.textContent=j.err;OFFS=j.list;sv();offv();$("oo").value=n;ofsel();alert("Saanjh Kendra added. Now tap the map to set its location and save.")}catch(x){e.textContent="Needs internet connection"}}
-async function odel(i){const n=offNames()[i];if(!confirm('Delete Saanjh Kendra "'+n+'"? Old attendance records are kept.'))return;
+async function odel(i){const n=offNames()[i];if(!await cf('Delete Saanjh Kendra "'+n+'"? Old attendance records are kept.'))return;
 try{const j=await call({k:"odel",o:n});if(j.err)return j.err=="auth"?kick():alert(j.err);OFFS=j.list;sv();offv()}catch(x){alert("Needs internet connection")}}
 function ofdraw(){if(!omap)return;if(omk)omk.remove();if(oci)oci.remove();omk=oci=null;if(!sel)return;
 omk=L.marker([sel.la,sel.lo]).addTo(omap);oci=L.circle([sel.la,sel.lo],{radius:Number($("rad").value)||200,color:"#087E8B",weight:1,fillOpacity:.15,interactive:false}).addTo(omap)}
@@ -287,30 +293,30 @@ $("smore").className=L.length>sh.length?"":"hide";$("smore").textContent="Show m
 function strf(b){const s=SF.find(x=>x.b==b);if(!s)return;
 $("m").innerHTML=`<a href="#" onclick="show(3);return false">&larr; Back</a><h4>Transfer employee</h4><p><b>${esc(s.n)}</b><br><small>Employee ID ${esc(s.b)} | now in ${esc(s.o)}</small></p><label>Transfer to Saanjh Kendra</label><select id=to><option value="">Select</option>${opt(offNames().filter(o=>o!=s.o))}</select><p class=sm>From now on this employee marks attendance for the new office (its allowed GPS area applies at once). Records already marked stay under the old office. Every transfer is written in the "Transfers" sheet.</p><p class=msg id=err></p><button onclick="strfgo('${esc(s.b)}')">Transfer</button>`}
 async function strfgo(b){const s=SF.find(x=>x.b==b),to=$("to").value,er=m=>$("err").textContent=m;if(!to)return er("Select the new Saanjh Kendra");
-if(!confirm("Transfer "+s.n+"\nfrom "+s.o+"\nto "+to+" ?"))return;
+if(!await cf("Transfer "+s.n+"\nfrom "+s.o+"\nto "+to+" ?"))return;
 try{const j=await call({k:"strf",t:b,so:to});if(j.err)return j.err=="auth"?kick():er(j.err);SF=j.list;sv();alert("Transferred to "+to);show(3)}catch(e){er("Needs internet connection")}}
 async function sop(o){try{const j=await call(o);if(j.err)return j.err=="auth"?kick():alert(j.err);SF=j.list;sv();staffv()}catch(e){alert("Needs internet connection")}}
 const sadd=()=>{const g=dgv("sg");if($("sg").value=="__o"&&!g)return $("err").textContent="Type the new designation";if(!g)return $("err").textContent="Select a designation";sop({k:"sadd",n:$("sn").value,sb:$("sb").value,so:$("so").value,dg:g,sa:$("sa").checked})};
-const sdel=b=>confirm("Delete "+SF.find(s=>s.b==b).n+"? Old attendance records are kept.")&&sop({k:"sdel",t:b});
-const sdev=b=>confirm("Reset the locked phone / browser of "+SF.find(s=>s.b==b).n+"?\nThe next phone (app) and browser he uses will be locked instead.")&&sop({k:"sdev",t:b});
+const sdel=async b=>await cf("Delete "+SF.find(s=>s.b==b).n+"? Old attendance records are kept.")&&sop({k:"sdel",t:b});
+const sdev=async b=>await cf("Reset the locked phone / browser of "+SF.find(s=>s.b==b).n+"?\nThe next phone (app) and browser he uses will be locked instead.")&&sop({k:"sdev",t:b});
 async function lkv(){if(!SM())return;stopGps();camStop();let on=null;
 try{const j=await call({k:"lockdev"});if(j.err)return j.err=="auth"?kick():alert(j.err);on=j.on}catch(e){return alert("Needs internet connection")}
 $("m").innerHTML=`<a href="#" onclick="show(3);return false">&larr; Back</a><h4>Device lock</h4><p>Status: <b style="color:${on?"#16A34A":"#D97706"}">${on?"ON - each employee is locked to one phone / browser":"OFF - no device is locked or checked"}</b></p><p class=sm>When ON, an employee's first phone (app) and first browser are locked, and any other device is refused until you press Reset device. When OFF nothing is locked and nobody is refused for the device they use. Admins are never locked. Locks already saved are kept while OFF and apply again when you turn it ON. Takes effect at once; no rebuild.</p><button onclick="lkset(${!on})" style="background:${on?"#D97706":"#087E8B"}">${on?"Turn OFF device lock":"Turn ON device lock"}</button>`}
-async function lkset(on){if(!SM())return;if(!confirm(on?"Turn ON device lock?\nEmployees will be locked to the phone / browser they use.":"Turn OFF device lock?\nNo device will be checked."))return;
+async function lkset(on){if(!SM())return;if(!await cf(on?"Turn ON device lock?\nEmployees will be locked to the phone / browser they use.":"Turn OFF device lock?\nNo device will be checked."))return;
 try{const j=await call({k:"lockdev",on});if(j.err)return j.err=="auth"?kick():alert(j.err);alert("Device lock is now "+(j.on?"ON":"OFF"));lkv()}catch(e){alert("Needs internet connection")}}
 async function reqv(){if(!SM())return;stopGps();camStop();let on=null;
 try{const j=await call({k:"reqapp"});if(j.err)return j.err=="auth"?kick():alert(j.err);on=j.on}catch(e){return alert("Needs internet connection")}
 $("m").innerHTML=`<a href="#" onclick="show(3);return false">&larr; Back</a><h4>App-only mode</h4><p>Status: <b style="color:${on?"#16A34A":"#D97706"}">${on?"ON - Android / PC browsers refused (iPhone excluded)":"OFF - browsers allowed by the iPhone-only rule (Android / PC browsers already refused for employees)"}</b></p><p class=sm>When ON, Android phones and PC / laptop browsers are refused; everyone must use the Android app. iPhone / iPad users are NOT affected and keep using the web. The master admin can still use the web, so you can never lock yourself out. Turn it ON once every employee uses the app. Takes effect at once; no rebuild.</p><p class=msg id=err></p><button onclick="reqset(${!on})" style="background:${on?"#D97706":"#087E8B"}">${on?"Turn OFF (allow browsers again)":"Turn ON (app only)"}</button>`}
-async function reqset(on){if(!SM())return;if(!confirm(on?"Turn ON App-only mode?\nEmployees using an Android or PC browser (and non-master admins on a PC) will be refused immediately. iPhone users are not affected.":"Turn OFF App-only mode?"))return;
+async function reqset(on){if(!SM())return;if(!await cf(on?"Turn ON App-only mode?\nEmployees using an Android or PC browser (and non-master admins on a PC) will be refused immediately. iPhone users are not affected.":"Turn OFF App-only mode?"))return;
 try{const j=await call({k:"reqapp",on});if(j.err)return j.err=="auth"?kick():alert(j.err);alert("App-only mode is now "+(j.on?"ON":"OFF"));reqv()}catch(e){alert("Needs internet connection")}}
 async function sdevall(){if(!SM())return;const n=SF.filter(s=>/Web: Safari/.test(s.dv||"")).length;if(!n)return alert("No Safari browser is locked at the moment.");
-if(!confirm("Reset the locked Safari browser of ALL "+n+" employees?\n\nChrome, Firefox, Opera and Android app phones are NOT changed. Each employee's next Safari login will lock again."))return;
-if(!confirm("Are you sure? This cannot be undone."))return;
+if(!await cf("Reset the locked Safari browser of ALL "+n+" employees?\n\nChrome, Firefox, Opera and Android app phones are NOT changed. Each employee's next Safari login will lock again."))return;
+if(!await cf("Are you sure? This cannot be undone."))return;
 try{const j=await call({k:"sdevall"});if(j.err)return j.err=="auth"?kick():alert(j.err);SF=j.list;sv();staffv();alert("Reset done for "+j.n+" employee(s).")}catch(e){alert("Needs internet connection")}}
-const srst=b=>confirm("Reset password to the Employee ID?")&&sop({k:"srst",t:b});
+const srst=async b=>await cf("Reset password to the Employee ID?")&&sop({k:"srst",t:b});
 const sadm=(b,a)=>sop({k:"sadm",t:b,a});
-const sdl=(b,v)=>confirm((v=="ON"?"Turn the device lock ON for ":"Turn the device lock OFF for ")+SF.find(s=>s.b==b).n+"?\n"+(v=="ON"?"He will be locked to the first phone / browser he uses, even while the common Device lock is OFF. (When the common Device lock is ON, everyone is locked anyway.)":"He will follow the common Device lock again (not locked while it is OFF; locked while it is ON)."))&&sop({k:"sdl",t:b,v});
-const sbr=(b,v)=>confirm((v=="ON"?"Switch the browser ON for ":"Switch the browser OFF for ")+SF.find(s=>s.b==b).n+"?\n"+(v=="ON"?"He can then use Android / PC browsers (unless the master admin's App-only mode is ON, which always wins).":"Android / PC browsers will be refused; he must use the Attendance app. iPhone is not affected."))&&sop({k:"sbr",t:b,v});
+const sdl=async(b,v)=>await cf((v=="ON"?"Turn the device lock ON for ":"Turn the device lock OFF for ")+SF.find(s=>s.b==b).n+"?\n"+(v=="ON"?"He will be locked to the first phone / browser he uses, even while the common Device lock is OFF. (When the common Device lock is ON, everyone is locked anyway.)":"He will follow the common Device lock again (not locked while it is OFF; locked while it is ON)."))&&sop({k:"sdl",t:b,v});
+const sbr=async(b,v)=>await cf((v=="ON"?"Switch the browser ON for ":"Switch the browser OFF for ")+SF.find(s=>s.b==b).n+"?\n"+(v=="ON"?"He can then use Android / PC browsers (unless the master admin's App-only mode is ON, which always wins).":"Android / PC browsers will be refused; he must use the Attendance app. iPhone is not affected."))&&sop({k:"sbr",t:b,v});
 // ---- designations: fixed list + every designation already used + "Other" (type a new one); always sorted A-Z ----
 const DG0=["A-MHC","A-SHO","Comp. Optr","DVR","G-Man","General Duty","Incharge","IO","MHC","N-MHC","PVO","Santri","SHO"];
 let DGL=ld("dgl",DG0);
@@ -324,12 +330,12 @@ function dgm(){if(!SM())return;
 $("m").innerHTML=`<a href="#" onclick="show(3);return false">&larr; Back</a><h4>Designations</h4><p class=sm>These appear in the drop-down when adding / editing an employee. A designation that employees still use cannot be deleted - change their designation first.</p><table>${dgList().map(g=>{const n=SF.filter(s=>s.g==g).length;return`<tr><td>${esc(g)}<br><small>${n} employee${n==1?"":"s"}</small></td><td><a href="#" onclick="dgdel(this.dataset.g);return false" data-g="${esc(g)}">Delete</a></td></tr>`}).join("")||"<tr><td>No designations</td></tr>"}</table><label>Add designation</label><input id=dgn maxlength=30><p class=msg id=err></p><button onclick=dgadd()>Add</button>`}
 async function dgadd(){const g=$("dgn").value.trim();if(!g)return $("err").textContent="Type the designation";
 try{const j=await call({k:"dgadd",g});if(j.err)return j.err=="auth"?kick():$("err").textContent=j.err;dgm()}catch(e){$("err").textContent="Needs internet connection"}}
-async function dgdel(g){if(!confirm("Delete designation "+g+"?"))return;
+async function dgdel(g){if(!await cf("Delete designation "+g+"?"))return;
 try{const j=await call({k:"dgdel",g});if(j.err)return j.err=="auth"?kick():alert(j.err);dgm()}catch(e){alert("Needs internet connection")}}
 async function sedtgo(b){const s=SF.find(x=>x.b==b),er=m=>$("err").textContent=m,n=$("en").value.trim(),nb=$("eb").value.trim(),g=dgv("eg");
 if(!n)return er("Name required");if(!/^[0-9A-Za-z]{1,10}$/.test(nb))return er("Employee ID: letters / digits only, up to 10 characters");
 if($("eg").value=="__o"&&!g)return er("Type the new designation");if(!g&&s.g)return er("Select a designation");
-if(nb!=s.b&&!confirm("Change Employee ID of "+s.n+"\nfrom "+s.b+" to "+nb+" ?\n\nHis user name and password will both become "+nb+"."))return;
+if(nb!=s.b&&!await cf("Change Employee ID of "+s.n+"\nfrom "+s.b+" to "+nb+" ?\n\nHis user name and password will both become "+nb+"."))return;
 try{const j=await call({k:"sedt",t:b,n,nb,dg:g});if(j.err)return j.err=="auth"?kick():er(j.err);
 if(j.idch&&b==me.b){alert("Employee ID changed to "+j.idch+".\nUser name and password are now "+j.idch+".\nPlease login again.");me=null;delete localStorage.sess;login();return}
 SF=j.list;sv();if(j.idch)alert("Employee ID changed to "+j.idch+".\nUser name and password are now "+j.idch+".");show(3)}catch(e){er("Needs internet connection")}}
@@ -374,17 +380,17 @@ $("rph").value=j.ph;$("rlg").value=j.lg;
 $("rmi").innerHTML=(j.ph||j.lg?"Automatic daily clean-up: "+(j.tr?"<b>ON</b>":"<b>timer missing</b> - tap Save again"):"Automatic clean-up is OFF (never delete).")+(j.last?"<br>Last clean-up: "+esc(j.last):"")}
 catch(x){if($("rmi"))$("rmi").textContent="Needs internet connection"}}
 async function retSave(){const e=$("rme"),ph=Number($("rph").value),lg=Number($("rlg").value);e.textContent="";
-if((ph||lg)&&!confirm("Photos: "+retT(ph)+"\nLogs: "+retT(lg)+"\n\nOlder photos, leave memos / medical certificates and log entries will be deleted from the server every night. Deleted photos cannot be brought back (they stay in Google Drive Trash for up to 30 days at best).\n\nSave?"))return;
+if((ph||lg)&&!await cf("Photos: "+retT(ph)+"\nLogs: "+retT(lg)+"\n\nOlder photos, leave memos / medical certificates and log entries will be deleted from the server every night. Deleted photos cannot be brought back (they stay in Google Drive Trash for up to 30 days at best).\n\nSave?"))return;
 try{const j=await call({k:"rset",ph,lg});if(j.err)return j.err=="auth"?kick():e.textContent=j.err;
 alert("Saved.\nPhotos: "+retT(j.ph)+"\nLogs: "+retT(j.lg)+(j.warn?"\n\n"+j.warn:""));retv()}catch(x){e.textContent="Needs internet connection"}}
 async function retRun(){const e=$("rme"),ph=Number($("rph").value),lg=Number($("rlg").value);e.textContent="";
 if(!ph&&!lg)return e.textContent="Both options are \"Never delete\" - choose days and tap Save first";
-if(!confirm("Delete NOW all photos, leave memos and medical certificates older than the saved setting and all old log entries?\n(Tap Save first if you just changed the options.)"))return;
+if(!await cf("Delete NOW all photos, leave memos and medical certificates older than the saved setting and all old log entries?\n(Tap Save first if you just changed the options.)"))return;
 $("rmi").textContent="Deleting... this can take a minute. Please wait.";
 try{const j=await call({k:"rrun"});if(j.err){$("rmi").textContent="";return j.err=="auth"?kick():e.textContent=j.err}
 const o=j.res;alert("Done.\nPhotos / documents deleted: "+o.photos+"\nActivity-log rows deleted: "+o.audit+"\nSecurity-log rows deleted: "+o.blocked+(o.more?"\n\nTime ran out - the rest will be deleted at the next run (tap again or wait for the night run).":"")+(o.err?"\n\n"+o.err+" photo(s) could not be deleted.":""));retv()}
 catch(x){$("rmi").textContent="";e.textContent="No answer from the server (internet?). Tap Delete old items now again to continue."}}
-async function ren(){if(!SM())return;const n=(prompt("New name of the app (3 to 40 characters)",AN)||"").replace(/\s+/g," ").trim();if(!n||n==AN)return;
+async function ren(){if(!SM())return;const n=(await pr("New name of the app (3 to 40 characters)",AN)||"").replace(/\s+/g," ").trim();if(!n||n==AN)return;
 if(n.length<3||n.length>40)return alert("The name must be 3 to 40 characters");
 try{const j=await call({k:"aname",n});if(j.err)return j.err=="auth"?kick():alert(j.err);setAN(j.an);alert("App name changed to: "+j.an+"\nEvery user sees it the next time the app connects.")}catch(e){alert("Needs internet connection")}}
 
