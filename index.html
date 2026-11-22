@@ -27,7 +27,7 @@ img{max-width:100%;border-radius:12px;margin-top:8px}.hide{display:none}.msg{col
 <header><span id=an onclick="ren()">Attendance SDSK-Central</span><span id=hl class=hide><a id=lg class=hide href="#" onclick="alog();return false">View Log</a><a href="#" onclick="sync();return false">Sync</a><a id=cv href="#" onclick="csv();return false">CSV</a><a href="#" onclick="pw();return false">Password</a><a href="#" onclick="out();return false">Logout</a></span><small id=who></small></header>
 <main id="m"></main><nav id="nv" class=hide></nav>
 <script>
-const URL0="https://script.google.com/macros/s/AKfycbyMlazw9thxEdlGvx7I1VcKKb_6rYGUAufZIYTf9q006WRDhl8IOHcuBLmgVthl_kyy7g/exec"; // paste your Google Apps Script web app URL here once, so staff never have to
+const URL0="https://script.google.com/macros/s/AKfycbzb98WKjkeapiZOthBHz5ggppTHEKnUykaQB7M0YEspSpy90473-Bgq1OFj3tui-vYvKg/exec"; // paste your Google Apps Script web app URL here once, so staff never have to
 const DEFOFF=["SDSK-Central","PSSK D-Division","PSSK E-Division","PSSK Gate Hakima","PSSK Islamabad"]; // used only until the list loads from the server
 const offNames=()=>OFFS.length?OFFS.map(x=>x.o):DEFOFF;
 const ST=["Present","Leave","OSD","Rest","Medical"];
@@ -57,7 +57,7 @@ const u=uaShort(),c=navigator.connection||{},ua=navigator.userAgent||"",pl=/iPho
 const dflds=i=>{const b=Number(i.bat),ss=String(i.ssid||"").replace(/^"|"$/g,""),bs=i.bssid=="02:00:00:00:00:00"?"":(i.bssid||"");return{src:i.src,did:i.id,dm:((i.brand||"")+" "+(i.model||"")).trim(),os:i.os||"",bat:i.bat===""||i.bat==null||isNaN(b)?"":b+"%"+(i.chg?" charging":""),net:i.net||"",wf:ss&&ss!="<unknown ssid>"?ss+(bs?" ("+bs+")":""):bs,av:i.av||""}};
 function blocked(){if(!devBad())return false;camStop();stopGps();$("hl").className="hide";$("nv").className="hide";$("who").textContent="";
 const rs=devWhy().filter(k=>k!="web");$("m").innerHTML='<h3>Security check failed</h3>'+(rs.length?"<p>Please fix:</p><ul>"+rs.map(k=>"<li>"+esc(WHY[k])+"</li>").join("")+"</ul>":"")+'<p>This app works only on phones that are <b>not rooted</b>, have <b>Developer options turned off</b>, <b>Automatic date &amp; time ON</b> and no fake-location app running.</p>'+(window.Android?"":"<p>Please open the official Attendance app.</p>")+'<button onclick="location.reload()">Check again</button>';return true}
-const APPV=8.4,NEEDV=8.4;let SV=null,warned=0; // APPV = this app, NEEDV = oldest server (Code.gs) version this app can work with
+const APPV=8.8,NEEDV=8.8;let SV=null,warned=0; // APPV = this app, NEEDV = oldest server (Code.gs) version this app can work with
 const srvOld=()=>SV!==null&&SV<NEEDV;
 const MAXACC=150; // GPS accuracy (metres) needed before "Present" can be saved
 const U=()=>URL0||localStorage.url||"",isA=()=>!!(me&&me.a);
@@ -79,19 +79,19 @@ const dn=x=>Date.UTC(+x.slice(6),+x.slice(3,5)-1,+x.slice(0,2)),fdm=t=>{const z=
 const has=(e,x)=>R.find(r=>r.e==e&&(r.sy?r.d==x:covers(r,x)));
 // employee only: first of these days that is already marked (this phone's waiting records + days remembered from the server)
 const clash=ds=>{if(!me||isA()||me.one===false)return null;for(const x of ds){const r=has(me.n,x);if(r)return{d:x,s:r.s};const m=MD.find(z=>z.d==x);if(m)return{d:x,s:m.s}}return null};
-// every request carries the logged-in belt number + password; the server decides what is allowed
+// every request carries the logged-in Employee ID + password; the server decides what is allowed
 const call=async(o,cr)=>{const j=await(await fetch(U(),{method:"POST",body:JSON.stringify({dv:DV(),di:DI(),...o,...(cr||{b:me.b,p:me.p})})})).json();
-if(j&&typeof j=="object"){if(j.an&&j.an!=AN)setAN(j.an);SV=parseFloat(j.ver)||0;if(srvOld()&&!warned){warned=1;setTimeout(()=>alert("WARNING: the server (Google Apps Script) is an OLD version, so From / To dates will NOT be saved correctly.\n\nIn Apps Script: Deploy > Manage deployments > Edit > New version > Deploy, and make sure URL0 in this app is the URL of that same deployment."),50)}who()}return j};
+if(j&&typeof j=="object"){if(j.an&&j.an!=AN)setAN(j.an);if(j.ds){DGL=j.ds;try{localStorage.dgl=JSON.stringify(j.ds)}catch(e){}}SV=parseFloat(j.ver)||0;if(srvOld()&&!warned){warned=1;setTimeout(()=>alert("WARNING: the server (Google Apps Script) is an OLD version, so From / To dates, Employee ID and Designation will NOT be saved correctly.\n\nIn Apps Script: Deploy > Manage deployments > Edit > New version > Deploy, and make sure URL0 in this app is the URL of that same deployment."),50)}who()}return j};
 
 function login(){if(blocked())return;setAN(AN);$("lg").className="hide";if(U()&&navigator.onLine)fetch(U()).then(r=>r.json()).then(j=>{if(j&&j.an)setAN(j.an)}).catch(()=>{});$("hl").className="hide";$("nv").className="hide";$("who").textContent="";
-$("m").innerHTML=`<label>Belt number (user name)</label><input id=u inputmode=numeric autocomplete=username><label>Password</label><input id=p type=password autocomplete=current-password>${U()?"":"<label>Server URL (one-time setup)</label><input id=url placeholder='https://script.google.com/macros/s/.../exec'>"}<p class=msg id=err></p><button id=lb onclick=go()>Login</button><p class=sm>First login: your password is your belt number. Please change it from the Password link.</p>`}
+$("m").innerHTML=`<label>Employee ID (user name)</label><input id=u inputmode=numeric autocomplete=username><label>Password</label><input id=p type=password autocomplete=current-password>${U()?"":"<label>Server URL (one-time setup)</label><input id=url placeholder='https://script.google.com/macros/s/.../exec'>"}<p class=msg id=err></p><button id=lb onclick=go()>Login</button><p class=sm>First login: your password is your Employee ID. Please change it from the Password link.</p>`}
 async function go(){const b=$("u").value.trim(),p=$("p").value,er=m=>$("err").textContent=m;
 if($("url")&&$("url").value.trim())localStorage.url=$("url").value.trim();
-if(!b||!p)return er("Enter belt number and password");if(!U())return er("Server URL missing");
+if(!b||!p)return er("Enter Employee ID and password");if(!U())return er("Server URL missing");
 $("lb").disabled=true;er("");
 try{const j=await call({k:"login"},{b,p});if(j.err)throw j.dev?j.err:0;
 me={...j.me,p,one:j.one};SF=[];MD=[];R=R.filter(r=>!r.sy||isA());sv();app();lqf()}
-catch(e){$("lb").disabled=false;er(e===0?"Wrong belt number or password":typeof e=="string"?e:"No connection. First login needs internet.")}}
+catch(e){$("lb").disabled=false;er(e===0?"Wrong Employee ID or password":typeof e=="string"?e:"No connection. First login needs internet.")}}
 async function out(){if(R.some(r=>!r.sy)&&!confirm("Some records are not synced yet and will stay on this phone. Logout anyway?"))return;
 const c={b:me.b,p:me.p},at=D(new Date())+" "+T(new Date());let ok=false;
 if(navigator.onLine){try{const j=await Promise.race([call({k:"logout"}),new Promise((_,no)=>setTimeout(()=>no(0),6000))]);ok=!!(j&&j.ok)}catch(e){}}
@@ -189,7 +189,7 @@ if(!f||!t)return e.textContent="Select both From date and To date";if(f>t)return
 const ds=span(f,t);if(!ds)return e.textContent="Maximum 90 days at a time";
 const S=SF.filter(z=>!o||z.o==o).sort((a,b)=>a.o==b.o?(a.n<b.n?-1:1):(a.o<b.o?-1:1));
 if(!S.length)return e.textContent="Staff list not loaded - tap Sync and try again";
-const W=[["Sr.","Date","Saanjh Kendra","Employee","Belt number","Status"]];let k=0;
+const W=[["Sr.","Date","Saanjh Kendra","Employee","Employee ID","Status"]];let k=0;
 ds.forEach(x=>S.forEach(z=>{if(!has(z.n,x)){k++;W.push([k,x,z.o,z.n,String(z.b),"Not marked"])}}));
 if(!k)return e.textContent="Everyone has marked attendance for the selected date(s)";
 const dm=x=>x.split("-").reverse().join("");
@@ -245,27 +245,27 @@ OFFS=j.list;sv();const o=$("oo").value;offv();$("oo").value=o;ofsel();alert("Off
 // ---------- staff (admin) ----------
 let sq="",sfo="",sn=50;
 const SM=()=>!!(me&&me.m);
-function staffv(){$("m").innerHTML=`<div class=row><input id=sl type=search placeholder="Search name, belt number or office" value="${esc(sq)}" oninput="sq=this.value;sn=50;srows()"><select id=sfo onchange="sfo=this.value;sn=50;srows()"><option value="">All offices</option>${opt(offNames())}</select></div><p class=sm id=sc></p><table id=st></table><button id=smore class=hide onclick="sn+=50;srows()" style="background:#344054">Show more</button>
-<h4>Add employee</h4><label>Name with rank (e.g. CT AMAN SINGH 1234/ASR)</label><input id=sn><label>Belt number</label><input id=sb inputmode=numeric><label>Saanjh Kendra</label><select id=so>${opt(offNames())}</select><label><input type=checkbox id=sa style="width:auto"> Admin</label><p class=msg id=err></p><button onclick=sadd()>Add employee</button><button onclick=logv() style="background:#344054">Security log (blocked attempts)</button>${SM()?'<h4>Master admin tools</h4><button onclick=alog()>View Log (login / logout and all changes)</button><button onclick=ren() style="background:#344054">Change app name</button><button onclick=reqv() style="background:#344054">App-only mode (switch browsers off)</button><button onclick=lkv() style="background:#344054">Device lock (ON / OFF)</button><button onclick=sdevall() style="background:#B42318">Reset ALL Safari devices (iPhone)</button><button onclick=retv() style="background:#344054">Storage clean-up (auto-delete old photos / logs)</button>':""}`;
+function staffv(){$("m").innerHTML=`<div class=row><input id=sl type=search placeholder="Search name, Employee ID, designation or office" value="${esc(sq)}" oninput="sq=this.value;sn=50;srows()"><select id=sfo onchange="sfo=this.value;sn=50;srows()"><option value="">All offices</option>${opt(offNames())}</select></div><p class=sm id=sc></p><table id=st></table><button id=smore class=hide onclick="sn+=50;srows()" style="background:#344054">Show more</button>
+<h4>Add employee</h4><label>Name with rank (e.g. CT AMAN SINGH 1234/ASR)</label><input id=sn><label>Employee ID (user name and first password)</label><input id=sb maxlength=10><label>Designation</label>${dgSel("sg","")}<label>Saanjh Kendra</label><select id=so>${opt(offNames())}</select><label><input type=checkbox id=sa style="width:auto"> Admin</label><p class=msg id=err></p><button onclick=sadd()>Add employee</button><button onclick=logv() style="background:#344054">Security log (blocked attempts)</button>${SM()?'<h4>Master admin tools</h4><button onclick=alog()>View Log (login / logout and all changes)</button><button onclick=ren() style="background:#344054">Change app name</button><button onclick=reqv() style="background:#344054">App-only mode (switch browsers off)</button><button onclick=lkv() style="background:#344054">Device lock (ON / OFF)</button><button onclick=sdevall() style="background:#B42318">Reset ALL Safari devices (iPhone)</button><button onclick=dgm() style="background:#344054">Manage designations (add / delete)</button><button onclick=retv() style="background:#344054">Storage clean-up (auto-delete old photos / logs)</button>':""}`;
 $("sfo").value=sfo;srows()}
 // one table row; the master admin's row is protected - only the master can change it and nobody can delete him or remove his admin rights
 const srow=s=>{const M=!!s.m,b=esc(s.b),lk=(f,t)=>`<a href="#" onclick="${f};return false">${t}</a>`;
 let a;if(M&&!SM())a="<small>Protected<br>(master admin)</small>";
 else a=lk(`sedt('${b}')`,"Edit")+" | "+lk(`srst('${b}')`,"Reset pw")+" | "+lk(`strf('${b}')`,"Transfer")+(s.dv?" | "+lk(`sdev('${b}')`,"Reset device"):"")+(M?"":"<br>"+lk(`sbr('${b}','${s.bp?"ON":"OFF"}')`,s.bp?"Browser on":"Browser off")+" | "+lk(`sdl('${b}','${s.dx?"OFF":"ON"}')`,s.dx?"Device lock off":"Device lock on")+" | "+lk(`sadm('${b}',${!s.a})`,s.a?"Remove admin":"Make admin")+" | "+lk(`sdel('${b}')`,"Delete"));
-return`<tr><td>${esc(s.n)}<br><small>${esc(s.o)} | ${b}${M?" | MASTER ADMIN":s.a?" | Admin":""}</small>${s.dv?`<br><small style="color:#087E8B">&#128274; ${esc(s.dv)}</small>`:s.a?"":`<br><small style="color:#98A2B3">no device locked yet</small>`}${M?"":`<br><small style="color:${s.bo?"#B42318":"#16A34A"}">Android / PC browser: ${s.bo?"OFF":"ON"}${s.bc?" (App-only mode is ON)":""} | Device lock: ${s.dl?"ON":"OFF"}${s.dc?" (common switch is ON)":s.dx?" (his own)":""}</small>`}</td><td>${a}</td></tr>`};
+return`<tr><td>${esc(s.n)}<br><small>Employee ID: <b>${b}</b> | Designation: <b>${s.g?esc(s.g):"-"}</b><br>${esc(s.o)}${M?" | MASTER ADMIN":s.a?" | Admin":""}</small>${s.dv?`<br><small style="color:#087E8B">&#128274; ${esc(s.dv)}</small>`:s.a?"":`<br><small style="color:#98A2B3">no device locked yet</small>`}${M?"":`<br><small style="color:${s.bo?"#B42318":"#16A34A"}">Android / PC browser: ${s.bo?"OFF":"ON"}${s.bc?" (App-only mode is ON)":""} | Device lock: ${s.dl?"ON":"OFF"}${s.dc?" (common switch is ON)":s.dx?" (his own)":""}</small>`}</td><td>${a}</td></tr>`};
 function srows(){if(!$("st"))return;
-const q=sq.toLowerCase().split(/\s+/).filter(Boolean),L=SF.filter(s=>(!sfo||s.o==sfo)&&q.every(w=>(s.n+" "+s.b+" "+s.o).toLowerCase().includes(w))),sh=L.slice(0,sn);
-$("sc").textContent=(q.length||sfo?L.length+" of "+SF.length+" employees match. ":SF.length+" employees. ")+"Default password = belt number.";
+const q=sq.toLowerCase().split(/\s+/).filter(Boolean),L=SF.filter(s=>(!sfo||s.o==sfo)&&q.every(w=>(s.n+" "+s.b+" "+(s.g||"")+" "+s.o).toLowerCase().includes(w))),sh=L.slice(0,sn);
+$("sc").textContent=(q.length||sfo?L.length+" of "+SF.length+" employees match. ":SF.length+" employees. ")+"Default password = Employee ID.";
 $("st").innerHTML=sh.map(srow).join("")||"<tr><td>No employee found</td></tr>";
 $("smore").className=L.length>sh.length?"":"hide";$("smore").textContent="Show more ("+(L.length-sh.length)+" more)"}
 // ---- transfer an employee to another Saanjh Kendra ----
 function strf(b){const s=SF.find(x=>x.b==b);if(!s)return;
-$("m").innerHTML=`<a href="#" onclick="show(3);return false">&larr; Back</a><h4>Transfer employee</h4><p><b>${esc(s.n)}</b><br><small>Belt ${esc(s.b)} | now in ${esc(s.o)}</small></p><label>Transfer to Saanjh Kendra</label><select id=to><option value="">Select</option>${opt(offNames().filter(o=>o!=s.o))}</select><p class=sm>From now on this employee marks attendance for the new office (its allowed GPS area applies at once). Records already marked stay under the old office. Every transfer is written in the "Transfers" sheet.</p><p class=msg id=err></p><button onclick="strfgo('${esc(s.b)}')">Transfer</button>`}
+$("m").innerHTML=`<a href="#" onclick="show(3);return false">&larr; Back</a><h4>Transfer employee</h4><p><b>${esc(s.n)}</b><br><small>Employee ID ${esc(s.b)} | now in ${esc(s.o)}</small></p><label>Transfer to Saanjh Kendra</label><select id=to><option value="">Select</option>${opt(offNames().filter(o=>o!=s.o))}</select><p class=sm>From now on this employee marks attendance for the new office (its allowed GPS area applies at once). Records already marked stay under the old office. Every transfer is written in the "Transfers" sheet.</p><p class=msg id=err></p><button onclick="strfgo('${esc(s.b)}')">Transfer</button>`}
 async function strfgo(b){const s=SF.find(x=>x.b==b),to=$("to").value,er=m=>$("err").textContent=m;if(!to)return er("Select the new Saanjh Kendra");
 if(!confirm("Transfer "+s.n+"\nfrom "+s.o+"\nto "+to+" ?"))return;
 try{const j=await call({k:"strf",t:b,so:to});if(j.err)return j.err=="auth"?kick():er(j.err);SF=j.list;sv();alert("Transferred to "+to);show(3)}catch(e){er("Needs internet connection")}}
 async function sop(o){try{const j=await call(o);if(j.err)return j.err=="auth"?kick():alert(j.err);SF=j.list;sv();staffv()}catch(e){alert("Needs internet connection")}}
-const sadd=()=>sop({k:"sadd",n:$("sn").value,sb:$("sb").value,so:$("so").value,sa:$("sa").checked});
+const sadd=()=>{const g=dgv("sg");if($("sg").value=="__o"&&!g)return $("err").textContent="Type the new designation";if(!g)return $("err").textContent="Select a designation";sop({k:"sadd",n:$("sn").value,sb:$("sb").value,so:$("so").value,dg:g,sa:$("sa").checked})};
 const sdel=b=>confirm("Delete "+SF.find(s=>s.b==b).n+"? Old attendance records are kept.")&&sop({k:"sdel",t:b});
 const sdev=b=>confirm("Reset the locked phone / browser of "+SF.find(s=>s.b==b).n+"?\nThe next phone (app) and browser he uses will be locked instead.")&&sop({k:"sdev",t:b});
 async function lkv(){if(!SM())return;stopGps();camStop();let on=null;
@@ -282,11 +282,32 @@ async function sdevall(){if(!SM())return;const n=SF.filter(s=>/Web: Safari/.test
 if(!confirm("Reset the locked Safari browser of ALL "+n+" employees?\n\nChrome, Firefox, Opera and Android app phones are NOT changed. Each employee's next Safari login will lock again."))return;
 if(!confirm("Are you sure? This cannot be undone."))return;
 try{const j=await call({k:"sdevall"});if(j.err)return j.err=="auth"?kick():alert(j.err);SF=j.list;sv();staffv();alert("Reset done for "+j.n+" employee(s).")}catch(e){alert("Needs internet connection")}}
-const srst=b=>confirm("Reset password to belt number?")&&sop({k:"srst",t:b});
+const srst=b=>confirm("Reset password to the Employee ID?")&&sop({k:"srst",t:b});
 const sadm=(b,a)=>sop({k:"sadm",t:b,a});
 const sdl=(b,v)=>confirm((v=="ON"?"Turn the device lock ON for ":"Turn the device lock OFF for ")+SF.find(s=>s.b==b).n+"?\n"+(v=="ON"?"He will be locked to the first phone / browser he uses, even while the common Device lock is OFF. (When the common Device lock is ON, everyone is locked anyway.)":"He will follow the common Device lock again (not locked while it is OFF; locked while it is ON)."))&&sop({k:"sdl",t:b,v});
 const sbr=(b,v)=>confirm((v=="ON"?"Switch the browser ON for ":"Switch the browser OFF for ")+SF.find(s=>s.b==b).n+"?\n"+(v=="ON"?"He can then use Android / PC browsers (unless the master admin's App-only mode is ON, which always wins).":"Android / PC browsers will be refused; he must use the Attendance app. iPhone is not affected."))&&sop({k:"sbr",t:b,v});
-function sedt(b){const s=SF.find(x=>x.b==b),n=prompt("Name with rank (to change the office use Transfer)",s.n);if(!n)return;sop({k:"sedt",t:b,n})}
+// ---- designations: fixed list + every designation already used + "Other" (type a new one); always sorted A-Z ----
+const DG0=["A-MHC","A-SHO","Comp. Optr","DVR","G-Man","General Duty","Incharge","IO","MHC","N-MHC","PVO","Santri","SHO"];
+let DGL=ld("dgl",DG0);
+const dgList=()=>{const m={};[...DGL].forEach(g=>{g=(g||"").trim();if(g&&!m[g.toLowerCase()])m[g.toLowerCase()]=g});return Object.values(m).sort((a,b)=>{a=a.toLowerCase();b=b.toLowerCase();return a<b?-1:a>b?1:0})};
+const dgSel=(id,cur)=>`<select id=${id} onchange="dgch('${id}')"><option value="">Select designation</option>${(cur&&!dgList().includes(cur)?[...dgList(),cur]:dgList()).map(g=>`<option${g==cur?" selected":""}>${esc(g)}</option>`).join("")}<option value="__o">Other (add new designation)</option></select><input id=${id}o class=hide maxlength=30 placeholder="Type the new designation" style="margin-top:6px">`;
+const dgch=id=>{$(id+"o").className=$(id).value=="__o"?"":"hide";if($(id).value=="__o")$(id+"o").focus()};
+const dgv=id=>{const v=$(id).value;return v=="__o"?$(id+"o").value.trim():v};
+function sedt(b){const s=SF.find(x=>x.b==b);if(!s)return;
+$("m").innerHTML=`<a href="#" onclick="show(3);return false">&larr; Back</a><h4>Edit employee</h4><label>Name with rank</label><input id=en value="${esc(s.n)}"><label>Employee ID (user name)</label><input id=eb value="${esc(s.b)}" maxlength=10><label>Designation</label>${dgSel("eg",s.g||"")}<p class=sm>Saanjh Kendra: ${esc(s.o)} (use Transfer to change it).<br>If you change the Employee ID, this employee's user name <b>and password</b> are set to the new Employee ID and he must login again.${s.m?"<br>This is the master admin: after saving a new ID you will be logged out and must login with the new ID.":""}</p><p class=msg id=err></p><button onclick="sedtgo('${esc(s.b)}')">Save</button>`}
+function dgm(){if(!SM())return;
+$("m").innerHTML=`<a href="#" onclick="show(3);return false">&larr; Back</a><h4>Designations</h4><p class=sm>These appear in the drop-down when adding / editing an employee. A designation that employees still use cannot be deleted - change their designation first.</p><table>${dgList().map(g=>{const n=SF.filter(s=>s.g==g).length;return`<tr><td>${esc(g)}<br><small>${n} employee${n==1?"":"s"}</small></td><td><a href="#" onclick="dgdel(this.dataset.g);return false" data-g="${esc(g)}">Delete</a></td></tr>`}).join("")||"<tr><td>No designations</td></tr>"}</table><label>Add designation</label><input id=dgn maxlength=30><p class=msg id=err></p><button onclick=dgadd()>Add</button>`}
+async function dgadd(){const g=$("dgn").value.trim();if(!g)return $("err").textContent="Type the designation";
+try{const j=await call({k:"dgadd",g});if(j.err)return j.err=="auth"?kick():$("err").textContent=j.err;dgm()}catch(e){$("err").textContent="Needs internet connection"}}
+async function dgdel(g){if(!confirm("Delete designation "+g+"?"))return;
+try{const j=await call({k:"dgdel",g});if(j.err)return j.err=="auth"?kick():alert(j.err);dgm()}catch(e){alert("Needs internet connection")}}
+async function sedtgo(b){const s=SF.find(x=>x.b==b),er=m=>$("err").textContent=m,n=$("en").value.trim(),nb=$("eb").value.trim(),g=dgv("eg");
+if(!n)return er("Name required");if(!/^[0-9A-Za-z]{1,10}$/.test(nb))return er("Employee ID: letters / digits only, up to 10 characters");
+if($("eg").value=="__o"&&!g)return er("Type the new designation");if(!g&&s.g)return er("Select a designation");
+if(nb!=s.b&&!confirm("Change Employee ID of "+s.n+"\nfrom "+s.b+" to "+nb+" ?\n\nHis user name and password will both become "+nb+"."))return;
+try{const j=await call({k:"sedt",t:b,n,nb,dg:g});if(j.err)return j.err=="auth"?kick():er(j.err);
+if(j.idch&&b==me.b){alert("Employee ID changed to "+j.idch+".\nUser name and password are now "+j.idch+".\nPlease login again.");me=null;delete localStorage.sess;login();return}
+SF=j.list;sv();if(j.idch)alert("Employee ID changed to "+j.idch+".\nUser name and password are now "+j.idch+".");show(3)}catch(e){er("Needs internet connection")}}
 
 async function logv(){try{const j=await call({k:"blog"});if(j.err)return j.err=="auth"?kick():alert(j.err);
 $("m").innerHTML=`<a href="#" onclick="show(3);return false">&larr; Back</a><h4>Blocked attempts (latest 200)</h4><table><tr><th>Time</th><th>Employee</th><th>Reason</th></tr>${j.list.map(x=>`<tr><td>${esc(x.t)}</td><td>${esc(x.n)}</td><td>${esc(x.w)}</td></tr>`).join("")||"<tr><td colspan=3>None</td></tr>"}</table>`}catch(e){alert("Needs internet connection")}}
@@ -298,7 +319,7 @@ function alog(){if(!SM())return;stopGps();camStop();const td=iso(new Date());
 $("m").innerHTML=`<a href="#" onclick="show(3);return false">&larr; Back</a><h4>Activity log <small>(master admin only)</small></h4>
 <p class=sm>Login / logout of every user, and every attendance record, staff, office or app-name change made by admins. For one day choose the same date in both fields.</p>
 <div class=row><div><label class=sm>From date</label><input type=date id=lgf value="${td}"></div><div><label class=sm>To date</label><input type=date id=lgt value="${td}"></div></div>
-<div class=row><select id=lgy><option value="">All activity</option><option value="AUTH">Login / Logout only</option><option value="RECORD">Attendance record changes (add / edit / delete)</option><option value="OTHER">Staff / office / app changes</option></select><input id=lgq placeholder="Name or belt number (optional)"></div>
+<div class=row><select id=lgy><option value="">All activity</option><option value="AUTH">Login / Logout only</option><option value="RECORD">Attendance record changes (add / edit / delete)</option><option value="OTHER">Staff / office / app changes</option></select><input id=lgq placeholder="Name or Employee ID (optional)"></div>
 <p class=msg id=lge></p><div class=row><button onclick=alogGo()>View log</button><button onclick=alogXl() style="background:#344054">Export Excel</button></div><p class=sm id=lgc></p><table id=lgb></table>`}
 async function alogGo(){const e=$("lge"),f=$("lgf").value,t=$("lgt").value;e.textContent="";
 if(!f||!t)return e.textContent="Select both From date and To date";if(f>t)return e.textContent="From date cannot be after To date";
@@ -309,7 +330,7 @@ LOGR=j.list;$("lgc").textContent=j.list.length?j.list.length+" entr"+(j.list.len
 $("lgb").innerHTML=j.list.length?"<tr><th>When</th><th>Who</th><th>What</th></tr>"+j.list.map(x=>`<tr><td>${esc(x.d)}<br>${esc(x.t)}</td><td>${esc(x.n)}<br><small>${esc(x.b)} | ${esc(x.r)}</small></td><td><b>${esc(x.a)}</b>${x.x?"<br>"+esc(x.x):""}</td></tr>`).join(""):""}
 catch(x){$("lgc").textContent="";e.textContent="Needs internet connection"}}
 function alogXl(){const e=$("lge");if(!LOGR.length)return e.textContent="Tap View log first - there is nothing to export";e.textContent="";
-const W=[["Sr.","Date","Time","Belt","Name","Role","Type","Action","Details"]].concat(LOGR.map((x,i)=>[i+1,x.d,x.t,x.b,x.n,x.r,TYN[x.y]||x.y,x.a,x.x]));
+const W=[["Sr.","Date","Time","Employee ID","Name","Role","Type","Action","Details"]].concat(LOGR.map((x,i)=>[i+1,x.d,x.t,x.b,x.n,x.r,TYN[x.y]||x.y,x.a,x.x]));
 const dm=v=>v.split("-").reverse().join(""),f=$("lgf").value,t=$("lgt").value;
 saveF("ActivityLog_"+dm(f)+(f!=t?"_to_"+dm(t):"")+".xlsx",xlsx(W,[6,12,12,10,34,14,18,22,80],"Activity log"))}
 // ---------- MASTER ADMIN: storage clean-up (auto-delete old photos and logs) ----------
@@ -343,7 +364,7 @@ if(n.length<3||n.length>40)return alert("The name must be 3 to 40 characters");
 try{const j=await call({k:"aname",n});if(j.err)return j.err=="auth"?kick():alert(j.err);setAN(j.an);alert("App name changed to: "+j.an+"\nEvery user sees it the next time the app connects.")}catch(e){alert("Needs internet connection")}}
 
 // ---------- sync ----------
-function kick(){alert("Login no longer valid (password changed or employee removed). Please login again.");me=null;delete localStorage.sess;login()}
+function kick(){alert("Login no longer valid (password or Employee ID changed, or employee removed). Please login again.");me=null;delete localStorage.sess;login()}
 async function sync(q){if(!me||!U())return;if(busy){again=1;return}busy=1;
 try{for(const id of [...DQ]){const j=await call({k:"del",id});if(j.err=="auth")return kick();if(j.ok){DQ=DQ.filter(x=>x!=id);sv()}}
 for(const r of R.filter(r=>!r.sy)){const j=await call({...r,k:"rec"});if(j.err=="auth")return kick();
